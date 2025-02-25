@@ -55,10 +55,24 @@
     <!-- Sección de Análisis Estadístico -->
     <div class="container" id="statsSection">
       <h1>Análisis Estadístico</h1>
-      <p>Ingresa una serie de números separados por comas para calcular la media, mediana y moda.</p>
+      <p>Ingresa una serie de números separados por comas para calcular media, mediana, moda y desviación estándar.</p>
       <textarea id="dataInput" placeholder="Ej: 1,2,3,4,5,5,3"></textarea>
       <button onclick="calculateStats()">Calcular Estadísticas</button>
       <p id="statsResult"></p>
+
+      <hr class="separator2">
+
+      <h2>Subir Archivo de Datos</h2>
+      <input type="file" id="dataFile" accept=".csv, .txt">
+      <label for="metricSelect">Selecciona la medida a calcular:</label>
+      <select id="metricSelect">
+          <option value="mean">Media</option>
+          <option value="median">Mediana</option>
+          <option value="mode">Moda</option>
+          <option value="stddev">Desviación Estándar</option>
+      </select>
+      <button onclick="calculateFileStats()">Calcular desde Archivo</button>
+      <p id="fileStatsResult"></p>
     </div>
   </div>
 
