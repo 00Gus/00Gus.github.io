@@ -37,9 +37,21 @@ body, html {
   margin: 20px 0;
 }
 
+/* Separador para sub-secciones */
+.separator2 {
+  width: 100%;
+  border: 1px dashed rgba(255,255,255,0.3);
+  margin: 20px 0;
+}
+
 /* Títulos y párrafos */
 h1 {
   margin-bottom: 10px;
+}
+
+h2 {
+  margin-bottom: 10px;
+  font-size: 18px;
 }
 
 p {
@@ -100,7 +112,7 @@ button:hover {
 
 .fade-block.active {
   opacity: 1;
-  max-height: 500px; /* Valor suficiente para mostrar los inputs */
+  max-height: 500px; /* Valor suficiente para mostrar el contenido */
 }
 
 /* Contenedor del mapa */
@@ -115,7 +127,7 @@ button:hover {
 }
 
 /* Mensajes de resultado y error */
-#result, #statsResult {
+#result, #statsResult, #fileStatsResult {
   margin-top: 15px;
   font-weight: bold;
 }
