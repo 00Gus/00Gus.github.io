@@ -48,13 +48,13 @@ function toggleInputs() {
   const mapContainer = document.getElementById("map");
 
   if (sourceType === "city") {
-    cityBlock.classList.add("active"); // Aparece el bloque de ciudad
-    coordsBlock.classList.remove("active"); // Se oculta el bloque de coordenadas
-    mapContainer.style.display = "none"; // Se oculta el mapa
+    cityBlock.classList.add("active"); // Mostrar bloque de ciudad
+    coordsBlock.classList.remove("active"); // Ocultar bloque de coordenadas
+    mapContainer.style.display = "none"; // Ocultar el mapa
   } else {
-    coordsBlock.classList.add("active"); // Aparece el bloque de coordenadas
-    cityBlock.classList.remove("active"); // Se oculta el bloque de ciudad
-    mapContainer.style.display = "none"; // Se oculta el mapa
+    coordsBlock.classList.add("active"); // Mostrar bloque de coordenadas
+    cityBlock.classList.remove("active"); // Ocultar bloque de ciudad
+    mapContainer.style.display = "none"; // Se mantendrá oculto hasta que se calcule
   }
 }
 
@@ -93,7 +93,7 @@ function updateMap(lat, lon) {
     map = null;
   }
 
-  // Usar requestAnimationFrame para inicializar el mapa tras renderizar el contenedor
+  // Inicializar el mapa tras renderizar el contenedor
   requestAnimationFrame(() => {
     map = L.map("map", {
       center: [lat, lon],
@@ -121,7 +121,7 @@ async function calculateEnergy() {
     return;
   }
   
-  // Validar la eficiencia (debe estar entre 1% y 100%)
+  // Validar la eficiencia (entre 1% y 100%)
   if (isNaN(efficiencyInput) || efficiencyInput < 1 || efficiencyInput > 100) {
     result.textContent = "Error: La eficiencia debe estar entre 1% y 100%.";
     result.classList.add("error");
@@ -152,7 +152,7 @@ async function calculateEnergy() {
     }
   }
 
-  // Mostrar el mapa (para ambos métodos, en este caso)
+  // Mostrar el mapa (se actualizará en ambos casos)
   updateMap(lat, lon);
 
   // Obtener la radiación solar usando la API
@@ -171,7 +171,7 @@ async function calculateEnergy() {
                       Promedio mensual: ${monthlyEnergy.toFixed(2)} kWh/mes`;
 }
 
-// Función para calcular estadísticas (media, mediana y moda)
+// Función para calcular estadísticas desde el textarea
 function calculateStats() {
   const input = document.getElementById("dataInput").value;
   const statsResult = document.getElementById("statsResult");
@@ -229,4 +229,82 @@ function calculateStats() {
   statsResult.innerHTML = `<strong>Media:</strong> ${mean.toFixed(2)}<br>
                            <strong>Mediana:</strong> ${median}<br>
                            <strong>Moda:</strong> ${mode}`;
+}
+
+// Función para calcular estadísticas desde un archivo
+function calculateFileStats() {
+  const fileInput = document.getElementById("dataFile");
+  const metric = document.getElementById("metricSelect").value;
+  const resultElem = document.getElementById("fileStatsResult");
+
+  if (fileInput.files.length === 0) {
+    resultElem.textContent = "Por favor, selecciona un archivo.";
+    resultElem.classList.add("error");
+    return;
+  }
+
+  const file = fileInput.files[0];
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const content = e.target.result;
+    // Separar datos usando comas, espacios o saltos de línea
+    let data = content.split(/[\s,]+/).map(x => Number(x.trim())).filter(x => !isNaN(x) && x !== "");
+    if (data.length === 0) {
+      resultElem.textContent = "El archivo no contiene datos numéricos válidos.";
+      resultElem.classList.add("error");
+      return;
+    }
+    resultElem.classList.remove("error");
+    let output = "";
+    switch(metric) {
+      case "mean":
+        const mean = data.reduce((a, b) => a + b, 0) / data.length;
+        output = `Media: ${mean.toFixed(2)}`;
+        break;
+      case "median":
+        data.sort((a, b) => a - b);
+        let median;
+        const mid = Math.floor(data.length / 2);
+        if (data.length % 2 === 0) {
+          median = (data[mid - 1] + data[mid]) / 2;
+        } else {
+          median = data[mid];
+        }
+        output = `Mediana: ${median.toFixed(2)}`;
+        break;
+      case "mode":
+        let freq = {};
+        let maxFreq = 0;
+        data.forEach(num => {
+          freq[num] = (freq[num] || 0) + 1;
+          if (freq[num] > maxFreq) maxFreq = freq[num];
+        });
+        let modes = [];
+        for (let num in freq) {
+          if (freq[num] === maxFreq) {
+            modes.push(Number(num));
+          }
+        }
+        if (modes.length === data.length) {
+          output = "Moda: No hay moda";
+        } else {
+          output = "Moda: " + modes.join(", ");
+        }
+        break;
+      case "stddev":
+        const meanVal = data.reduce((a, b) => a + b, 0) / data.length;
+        const variance = data.reduce((sum, val) => sum + Math.pow(val - meanVal, 2), 0) / data.length;
+        const stddev = Math.sqrt(variance);
+        output = `Desviación Estándar: ${stddev.toFixed(2)}`;
+        break;
+      default:
+        output = "Métrica no válida.";
+    }
+    resultElem.textContent = output;
+  };
+  reader.onerror = function() {
+    resultElem.textContent = "Error al leer el archivo.";
+    resultElem.classList.add("error");
+  };
+  reader.readAsText(file);
 }
