@@ -1,85 +1,131 @@
-/* Estilo general */
+/* Reset y estilos globales */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 body, html {
-    margin: 0;
-    padding: 0;
-    font-family: Arial, sans-serif;
-    background: url('solar_image.png') no-repeat center center fixed;
-    background-size: cover;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+  font-family: Arial, sans-serif;
+  background: url('solar_image.png') no-repeat center center fixed;
+  background-size: cover;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
 }
 
-/* Contenedor principal */
+/* Contenedor principal para cada sección */
 .container {
-    background: rgba(0, 0, 0, 0.7);
-    padding: 30px;
-    border-radius: 10px;
-    text-align: center;
-    width: 90%;
-    max-width: 400px;
-    color: white;
-    box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.7);
+  width: 90%;
+  max-width: 400px;
+  padding: 20px 30px;
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 0 15px rgba(0,0,0,0.3);
+  color: #fff;
+  margin-bottom: 30px;
 }
 
-/* Título */
+/* Separador entre secciones */
+.separator {
+  width: 90%;
+  max-width: 400px;
+  border: 1px solid rgba(255,255,255,0.3);
+  margin: 20px 0;
+}
+
+/* Títulos y párrafos */
 h1 {
-    font-size: 22px;
-    margin-bottom: 15px;
+  margin-bottom: 10px;
 }
 
-/* Descripción */
 p {
-    font-size: 14px;
-    margin-bottom: 20px;
+  font-size: 14px;
+  margin-bottom: 20px;
 }
 
-/* Select y inputs */
-select, input {
-    width: 100%;  /* Misma longitud para todos */
-    max-width: 300px;  /* Evita que sean demasiado largos */
-    padding: 12px;
-    margin: 8px auto;  /* Espaciado uniforme */
-    display: block;
-    text-align: center;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 16px;
-    background: white;
-    color: black;
+/* Etiquetas e inputs */
+label {
+  display: block;
+  text-align: left;
+  margin: 10px 0 5px;
+  font-size: 14px;
 }
 
-/* Placeholder en inputs */
-input::placeholder {
-    color: gray;
-    opacity: 0.7;
+/* Inputs, selects y textarea */
+select, input, textarea {
+  width: 100%;
+  max-width: 300px;
+  display: block;
+  margin: 0 auto 10px;
+  padding: 10px;
+  border-radius: 5px;
+  border: none;
+  font-size: 14px;
+  text-align: center;
+}
+
+textarea {
+  height: 100px;
+  resize: vertical;
 }
 
 /* Botón */
 button {
-    width: 100%;
-    max-width: 300px;
-    padding: 12px;
-    background: #6be31c;  /* Verde brillante */
-    border: none;
-    border-radius: 5px;
-    color: white;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    margin-top: 10px;
-    transition: background 0.3s ease;
+  width: 100%;
+  max-width: 300px;
+  padding: 12px;
+  margin-top: 10px;
+  border: none;
+  border-radius: 5px;
+  background: #6be31c;
+  color: #000;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.3s;
 }
 
 button:hover {
-    background: #5ac117;
+  background: #57c00f;
 }
 
-/* Adaptabilidad para móviles */
-@media (max-width: 600px) {
-    .container {
-        width: 95%;
-        padding: 20px;
-    }
+/* Bloques con efecto fade */
+.fade-block {
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+  transition: all 0.5s ease;
 }
+
+.fade-block.active {
+  opacity: 1;
+  max-height: 500px; /* Valor suficiente para mostrar los inputs */
+}
+
+/* Mensajes de resultado y error */
+#result, #statsResult {
+  margin-top: 15px;
+  font-weight: bold;
+}
+
+.error {
+  background-color: #e74c3c;
+  padding: 10px;
+  border-radius: 5px;
+  color: #fff;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .container {
+    width: 95%;
+  }
+  select, input, textarea, button {
+    font-size: 14px;
+  }
+}
+
