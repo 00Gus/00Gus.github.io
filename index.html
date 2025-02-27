@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Solar Web</title>
+  <link rel="stylesheet" href="styles.css">
+  <!-- Librería Chart.js para la gráfica -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Leaflet CSS para el mapa -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+</head>
+<body>
+  <!-- Sección Hero (Portada) -->
+  <header id="heroSection" class="hero-section">
+    <div class="hero-content">
+      <h1>Solar Web</h1>
+      <h2>¡Ahora es más fácil!</h2>
+      <h2>Descubre cómo la energía solar puede transformar tu hogar y tus finanzas.</h2>
+      <div class="hero-buttons">
+        <button onclick="showSection('solarSection')">Calculadora de Energía Solar</button>
+        <button onclick="showSection('statsSection')">Análisis Estadístico</button>
+        <button onclick="showSection('panelSection')">¿Cuántos paneles necesitas?</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Contenedor principal -->
+  <div class="wrapper">
+    <!-- Sección Calculadora de Energía Solar -->
+    <section class="container" id="solarSection" style="display: none;">
+      <h2>Calculadora de Energía Solar</h2>
+      <h3>Calcula la energía generada por tus paneles y conoce cuánto podrías ahorrar en tu recibo de luz</h3>
+      <p>Selecciona una opción para obtener la radiación solar.</p>
+
+      <!-- Menú de entrada -->
+      <label for="sourceType">Tipo de entrada:</label>
+      <select id="sourceType" onchange="toggleInputs()">
+        <option value="city" selected>Seleccionar Ciudad</option>
+        <option value="coords">Ingresar Coordenadas</option>
+      </select>
+
+      <!-- Bloque de selección de ciudad -->
+      <div class="fade-block city-block active" id="cityBlock">
+        <label for="citySelect">Ciudad:</label>
+        <select id="citySelect"></select>
+      </div>
+
+      <!-- Bloque de coordenadas -->
+      <div class="fade-block coords-block" id="coordsBlock">
+        <label for="latInput">Latitud:</label>
+        <input type="number" id="latInput" placeholder="Ej. 19.70" step="0.01">
+        <label for="lonInput">Longitud:</label>
+        <input type="number" id="lonInput" placeholder="Ej. -101.19" step="0.01">
+      </div>
+
+      <!-- Datos del panel -->
+      <label for="panelArea">Área del panel (m²):</label>
+      <input type="number" id="panelArea" placeholder="Ej. 1.6" min="0.1">
+      <label for="efficiency">Eficiencia del panel (%):</label>
+      <input type="number" id="efficiency" placeholder="Ej. 18" min="1" max="100">
+
+      <button onclick="calculateEnergy()">Calcular Energía</button>
+      <p id="result"></p>
+
+      <!-- Mapa -->
+      <div id="map"></div>
+
+      <hr class="separator2">
+
+      <!-- Sección de consumo y ahorro -->
+      <h3>Calcula tu Consumo y Ahorro</h3>
+      <p>En México los recibos de luz se emiten cada dos meses. Ingresa tu consumo bimestral (kWh), el monto del recibo (MXN) y la tarifa eléctrica ($/kWh).</p>
+      <label for="bimonthlyConsumption">Consumo bimestral (kWh):</label>
+      <input type="number" id="bimonthlyConsumption" placeholder="Ej. 600" min="1">
+      <label for="bimonthlyCost">Monto del recibo bimestral (MXN):</label>
+      <input type="number" id="bimonthlyCost" placeholder="Ej. 1000" min="1">
+      <label for="electricityTariff">Tarifa eléctrica ($/kWh):</label>
+      <input type="number" id="electricityTariff" placeholder="Ej. 2.5" step="0.01" min="0">
+      <button onclick="calculateSavings()">Calcular Ahorro</button>
+      <p id="savingsResult"></p>
+
+      <!-- Gráfica comparativa -->
+      <div class="chart-container">
+        <canvas id="savingsChart"></canvas>
+      </div>
+
+      <!-- Botón de regreso -->
+      <button class="back-home-btn solar" onclick="returnHome()">
+        <span>☀️ Volver al Inicio</span>
+      </button>
+    </section>
+
+    <hr class="separator">
+
+    <!-- Sección de Análisis Estadístico -->
+    <section class="container" id="statsSection" style="display: none;">
+      <h2>Análisis Estadístico</h2>
+      <p>Ingresa una serie de números separados por comas para calcular media, mediana, moda y desviación estándar.</p>
+      <textarea id="dataInput" placeholder="Ej: 1,2,3,4,5,5,3"></textarea>
+      <button onclick="calculateStats()">Calcular Estadísticas</button>
+      <p id="statsResult"></p>
+
+      <hr class="separator2">
+
+      <h3>Subir Archivo de Datos</h3>
+      <input type="file" id="dataFile" accept=".csv, .txt">
+      <label for="metricSelect">Selecciona la medida a calcular:</label>
+      <select id="metricSelect">
+        <option value="mean">Media</option>
+        <option value="median">Mediana</option>
+        <option value="mode">Moda</option>
+        <option value="stddev">Desviación Estándar</option>
+      </select>
+      <button onclick="calculateFileStats()">Calcular desde Archivo</button>
+      <p id="fileStatsResult"></p>
+
+      <!-- Botón de regreso -->
+      <button class="back-home-btn stats" onclick="returnHome()">
+        <span>📊 Volver al Inicio</span>
+      </button>
+    </section>
+
+    <hr class="separator">
+
+    <!-- Sección: ¿Cuántos paneles necesitas? -->
+    <section class="container" id="panelSection" style="display: none;">
+      <h2>¿Cuántos paneles necesitas?</h2>
+      <p>Selecciona el tipo de panel y luego el modelo para ver una breve descripción. Ingresa el área total que deseas cubrir para calcular la cantidad de paneles requeridos.</p>
+      
+      <!-- Selección de tipo de panel -->
+      <label for="panelType">Tipo de panel:</label>
+      <select id="panelType" onchange="populatePanelModels()">
+        <option value="residential" selected>Residencial</option>
+        <option value="industrial">Industrial</option>
+      </select>
+      
+      <!-- Selección de modelo de panel -->
+      <label for="panelModel">Modelo de panel:</label>
+      <select id="panelModel" onchange="updatePanelDescription()"></select>
+      
+      <!-- Descripción del panel seleccionado -->
+      <p id="panelDescription" class="panel-description"></p>
+      
+      <!-- Ingreso de área requerida -->
+      <label for="requiredArea">Área total requerida (m²):</label>
+      <input type="number" id="requiredArea" placeholder="Ej: 50" min="1" step="0.1">
+      
+      <button onclick="calculatePanels()">Calcular Paneles Necesarios</button>
+      <p id="panelResult"></p>
+      
+      <!-- Botón de regreso -->
+      <button class="back-home-btn panel" onclick="returnHome()">
+        <span>🔙 Volver al Inicio</span>
+      </button>
+    </section>
+  </div>
+
+  <!-- Scripts externos -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
