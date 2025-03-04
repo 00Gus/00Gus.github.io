@@ -175,7 +175,7 @@ button:hover {
   margin-bottom: 10px;
 }
 
-/* Resultados y errores */
+/* Mensajes de error */
 .error {
   background-color: #e74c3c;
   padding: 10px;
@@ -183,7 +183,7 @@ button:hover {
   color: #fff;
 }
 
-/* Gráfica (Chart.js) */
+/* Contenedor para gráficas (Chart.js) */
 .chart-container {
   width: 100%;
   max-width: 600px;
@@ -266,7 +266,7 @@ button:hover {
 /* Contenedor de videos responsivo */
 .video-container {
   position: relative;
-  padding-bottom: 56.25%; /* Aspect ratio 16:9 */
+  padding-bottom: 56.25%;
   height: 0;
   overflow: hidden;
   max-width: 100%;
