@@ -48,7 +48,6 @@ Object.keys(cities).forEach(city => {
  * Función para mostrar secciones y actualizar el fondo
  **********************/
 function showSection(sectionId) {
-  // Lista de secciones
   const sections = ["solarSection", "panelSection", "dataSection", "analysisSection", "helpSection"];
   sections.forEach(id => {
     document.getElementById(id).style.display = (id === sectionId) ? "block" : "none";
@@ -60,19 +59,20 @@ function showSection(sectionId) {
     hero.style.display = "none";
   }
 
-  // Cambiar el fondo
+  // Cambiar el fondo dependiendo de la sección
   if (sectionId === "solarSection") {
     document.body.style.backgroundImage = "url('calculadora.png')";
   } else if (sectionId === "panelSection") {
     document.body.style.backgroundImage = "url('Panelsolar.png')";
+  } else if (sectionId === "dataSection" || sectionId === "analysisSection") {
+    document.body.style.backgroundImage = "url('Estadistica.png')";
   } else {
-    // Si no coincide, se vuelve al fondo original
+    // Para otras secciones o si no coincide, vuelve al fondo original
     document.body.style.backgroundImage = "url('solar_image.png')";
   }
+
   document.body.style.backgroundSize = "cover";
   document.body.style.backgroundPosition = "center center";
-
-  // Desplazar la ventana al inicio
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -150,7 +150,6 @@ async function calculateEnergy() {
   const efficiencyInput = parseFloat(document.getElementById("efficiency").value);
   const result = document.getElementById("result");
 
-  // Validaciones
   if (isNaN(area) || area <= 0) {
     result.textContent = "Por favor, ingresa un área válida.";
     result.classList.add("error");
@@ -166,7 +165,6 @@ async function calculateEnergy() {
   const efficiency = efficiencyInput / 100;
   let lat, lon;
 
-  // Determinar lat y lon
   if (sourceType === "city") {
     const selectedCity = citySelect.value;
     if (!cities[selectedCity]) {
@@ -186,10 +184,7 @@ async function calculateEnergy() {
     }
   }
 
-  // Actualizar mapa
   updateMap(lat, lon);
-
-  // Llamada a la API de NASA
   const radiation = await getSolarRadiation(lat, lon);
   if (!radiation) {
     result.textContent = "No se pudo obtener la radiación solar.";
@@ -197,7 +192,6 @@ async function calculateEnergy() {
     return;
   }
 
-  // Cálculo de energía
   const dailyEnergy = radiation * area * efficiency;
   monthlyEnergy = dailyEnergy * 30;
 
@@ -216,7 +210,6 @@ function calculateSavings() {
   const billAmount = parseFloat(document.getElementById("bimonthlyCost").value);
   const tariff = parseFloat(document.getElementById("electricityTariff").value);
 
-  // Validaciones
   if (isNaN(consumption) || consumption <= 0 ||
       isNaN(billAmount) || billAmount <= 0) {
     savingsResult.textContent = "Por favor, ingresa valores válidos para consumo y monto del recibo.";
@@ -594,11 +587,10 @@ function hideHelp() {
  * Función para volver al inicio (Hero)
  **********************/
 function returnHome() {
-  document.getElementById("solarSection").style.display = "none";
-  document.getElementById("panelSection").style.display = "none";
-  document.getElementById("dataSection").style.display = "none";
-  document.getElementById("analysisSection").style.display = "none";
-  document.getElementById("helpSection").style.display = "none";
+  const sections = ["solarSection", "panelSection", "dataSection", "analysisSection", "helpSection"];
+  sections.forEach(id => {
+    document.getElementById(id).style.display = "none";
+  });
 
   const hero = document.getElementById("heroSection");
   hero.style.display = "flex";
