@@ -12,6 +12,12 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-box-and-violin-plot@3.9.0/dist/chartjs-chart-box-and-violin-plot.min.js"></script>
 
+  <!-- Librería para leer archivos Excel -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+  <!-- Librería math.js para operaciones con matrices -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.min.js"></script>
+
   <!-- Leaflet CSS para el mapa -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 </head>
@@ -21,12 +27,14 @@
     <div class="hero-content">
       <h1>Solar Web</h1>
       <h2>¡Ahora es más fácil!</h2>
-      <h2>Descubre cómo la energía solar puede transformar tu hogar y tus finanzas.</h2>
+      <h2>Descubre cómo la energía solar y el análisis de datos pueden transformar tu mundo.</h2>
       <div class="hero-buttons">
         <button onclick="showSection('solarSection')">Calculadora de Energía Solar</button>
         <button onclick="showSection('panelSection')">¿Cuántos paneles necesitas?</button>
         <button onclick="showSection('dataSection')">Ingresar Datos</button>
         <button onclick="showSection('analysisSection')">Análisis Estadístico</button>
+        <button onclick="showSection('regressionSection')">Regresión (Mínimos Cuadrados)</button>
+        <button onclick="showSection('algebraSection')">Álgebra (Matrices)</button>
         <button onclick="showSection('helpSection')">Ayuda</button>
       </div>
     </div>
@@ -34,48 +42,34 @@
 
   <!-- Contenedor principal -->
   <div class="wrapper">
-
     <!-- Sección Calculadora de Energía Solar -->
     <section class="container" id="solarSection" style="display: none;">
       <h2>Calculadora de Energía Solar</h2>
       <h3>Calcula la energía generada por tus paneles y conoce cuánto podrías ahorrar en tu recibo de luz</h3>
       <p>Selecciona una opción para obtener la radiación solar.</p>
-
-      <!-- Tipo de entrada (Ciudad o Coordenadas) -->
       <label for="sourceType">Tipo de entrada:</label>
       <select id="sourceType" onchange="toggleInputs()">
         <option value="city" selected>Seleccionar Ciudad</option>
         <option value="coords">Ingresar Coordenadas</option>
       </select>
-
-      <!-- Bloque para selección de ciudad -->
       <div class="fade-block city-block active" id="cityBlock">
         <label for="citySelect">Ciudad:</label>
         <select id="citySelect"></select>
       </div>
-
-      <!-- Bloque para ingresar coordenadas -->
       <div class="fade-block coords-block" id="coordsBlock">
         <label for="latInput">Latitud:</label>
         <input type="number" id="latInput" placeholder="Ej: 19.70" step="0.01">
         <label for="lonInput">Longitud:</label>
         <input type="number" id="lonInput" placeholder="Ej: -101.19" step="0.01">
       </div>
-
-      <!-- Datos del panel -->
       <label for="panelArea">Área del panel (m²):</label>
       <input type="number" id="panelArea" placeholder="Ej: 1.6" min="0.1">
       <label for="efficiency">Eficiencia del panel (%):</label>
       <input type="number" id="efficiency" placeholder="Ej: 18" min="1" max="100">
-
       <button onclick="calculateEnergy()">Calcular Energía</button>
       <p id="result"></p>
-
-      <!-- Mapa Leaflet -->
       <div id="map"></div>
-
       <hr class="separator2">
-
       <h3>Calcula tu Consumo y Ahorro</h3>
       <p>En México los recibos de luz se emiten cada dos meses. Ingresa tu consumo bimestral (kWh), el monto del recibo (MXN) y la tarifa eléctrica ($/kWh).</p>
       <label for="bimonthlyConsumption">Consumo bimestral (kWh):</label>
@@ -86,11 +80,9 @@
       <input type="number" id="electricityTariff" placeholder="Ej: 2.5" step="0.01" min="0">
       <button onclick="calculateSavings()">Calcular Ahorro</button>
       <p id="savingsResult"></p>
-
       <div class="chart-container">
         <canvas id="savingsChart"></canvas>
       </div>
-
       <button class="back-home-btn solar" onclick="returnHome()"><span>☀️ Volver al Inicio</span></button>
     </section>
 
@@ -105,17 +97,13 @@
         <option value="residential" selected>Residencial</option>
         <option value="industrial">Industrial</option>
       </select>
-
       <label for="panelModel">Modelo de panel:</label>
       <select id="panelModel" onchange="updatePanelDescription()"></select>
       <p id="panelDescription" class="panel-description"></p>
-
       <label for="requiredArea">Área total requerida (m²):</label>
       <input type="number" id="requiredArea" placeholder="Ej: 50" min="1" step="0.1">
-
       <button onclick="calculatePanels()">Calcular Paneles Necesarios</button>
       <p id="panelResult"></p>
-
       <button class="back-home-btn panel" onclick="returnHome()"><span>🔙 Volver al Inicio</span></button>
     </section>
 
@@ -125,24 +113,20 @@
     <section class="container" id="dataSection" style="display: none;">
       <h2>Ingresar Datos</h2>
       <p>Elige el tipo de gráfica y escribe tus datos para visualizar.</p>
-
       <label for="dataGraphType">Tipo de gráfica:</label>
       <select id="dataGraphType" onchange="handleDataGraphTypeChange()">
         <option value="histogram" selected>Histograma</option>
         <option value="boxplot">Boxplot</option>
         <option value="scatter">Gráfico XY</option>
       </select>
-
       <div id="numericDataContainer">
         <label for="customDataInput">Datos (números separados por comas):</label>
         <textarea id="customDataInput" placeholder="Ej: 5, 10, 15, 20, 25"></textarea>
       </div>
-
       <div id="xyDataContainer" style="display: none;">
         <label for="xyDataInput">Datos XY (formato: x,y; x,y; ...):</label>
         <textarea id="xyDataInput" placeholder="Ej: 10,20; 30,40; 50,60"></textarea>
       </div>
-
       <button onclick="processData()">Procesar Datos</button>
       <div id="customDataResult"></div>
       <div class="chart-container">
@@ -165,10 +149,66 @@
 
     <hr class="separator">
 
-    <!-- Sección de Ayuda con videos -->
+    <!-- Sección: Regresión (Mínimos Cuadrados) -->
+    <section class="container" id="regressionSection" style="display: none;">
+      <h2>Regresión por Mínimos Cuadrados</h2>
+      <p>Elige cómo ingresar los datos:</p>
+      <label for="dataInputMethod">Método de ingreso:</label>
+      <select id="dataInputMethod" onchange="toggleDataInput()">
+        <option value="manual" selected>Ingresar manualmente</option>
+        <option value="file">Subir archivo Excel</option>
+      </select>
+      <!-- Entrada manual -->
+      <div id="manualInputSection">
+        <label for="regressionInput">Datos (formato "x,y; x,y; ..."):</label>
+        <textarea id="regressionInput" placeholder="Ej: 1,2; 2,4; 3,5"></textarea>
+      </div>
+      <!-- Carga de archivo -->
+      <div id="fileInputSection" style="display: none;">
+        <label for="fileUpload">Subir archivo Excel (.xlsx):</label>
+        <input type="file" id="fileUpload" accept=".xlsx" />
+      </div>
+      <button onclick="processRegression()">Procesar Regresión</button>
+      <div id="regressionResult"></div>
+      <div class="chart-container">
+        <canvas id="regressionChart"></canvas>
+      </div>
+      <button class="back-home-btn" onclick="returnHome()"><span>🔙 Volver al Inicio</span></button>
+    </section>
+
+    <hr class="separator">
+
+    <!-- Sección: Álgebra (Matrices) -->
+    <section class="container" id="algebraSection" style="display: none;">
+      <h2>Operaciones con Matrices</h2>
+      <p>Ingresa dos matrices (una por cada textarea) en el formato: cada fila separada por salto de línea y cada valor separado por coma.</p>
+      <div class="matrix-container">
+        <div>
+          <h3>Matriz A</h3>
+          <textarea id="matrixA" placeholder="Ej: 1,2,3&#10;4,5,6"></textarea>
+        </div>
+        <div>
+          <h3>Matriz B</h3>
+          <textarea id="matrixB" placeholder="Ej: 7,8,9&#10;10,11,12"></textarea>
+        </div>
+      </div>
+      <button onclick="addMatrices()">Sumar Matrices (A+B)</button>
+      <button onclick="multiplyMatrices()">Multiplicar Matrices (A×B)</button>
+      <div id="algebraResult1"></div>
+      <hr class="separator2">
+      <p>Para una sola matriz, ingresa la matriz y selecciona la operación:</p>
+      <textarea id="matrixSingle" placeholder="Ej: 1,2,3&#10;4,5,6"></textarea>
+      <button onclick="transposeMatrix()">Transponer Matriz</button>
+      <button onclick="invertMatrix()">Inversa de la Matriz</button>
+      <div id="algebraResult2"></div>
+      <button class="back-home-btn" onclick="returnHome()"><span>🔙 Volver al Inicio</span></button>
+    </section>
+
+    <hr class="separator">
+
+    <!-- Sección: Ayuda con videos -->
     <section class="container" id="helpSection" style="display: none;">
       <h2>Ayuda y Explicación de Gráficos</h2>
-
       <div class="help-item">
         <h3>Histograma</h3>
         <p>Visualiza la frecuencia de los datos en intervalos.</p>
@@ -176,7 +216,6 @@
           <iframe src="https://www.youtube.com/embed/-VZ4x_rLCHE" allowfullscreen></iframe>
         </div>
       </div>
-
       <div class="help-item">
         <h3>Boxplot (Diagrama de Caja)</h3>
         <p>Muestra la mediana, cuartiles y posibles valores atípicos.</p>
@@ -184,7 +223,6 @@
           <iframe src="https://www.youtube.com/embed/24Uz1mBksL4" allowfullscreen></iframe>
         </div>
       </div>
-
       <div class="help-item">
         <h3>Gráfico XY (Scatter)</h3>
         <p>Permite visualizar la relación entre dos variables.</p>
@@ -192,7 +230,6 @@
           <iframe src="https://www.youtube.com/embed/edE5Y1kOgFw" allowfullscreen></iframe>
         </div>
       </div>
-
       <div class="help-item">
         <h3>Media (x̄)</h3>
         <p>Promedio de todos los valores</p>
@@ -201,7 +238,6 @@
           <iframe src="https://www.youtube.com/embed/0DA7Wtz1ddg" allowfullscreen></iframe>
         </div>
       </div>
-
       <div class="help-item">
         <h3>Mediana</h3>
         <p>Valor central en datos ordenados. Si es par: promedio de los dos centrales.</p>
@@ -209,7 +245,6 @@
           <iframe src="https://www.youtube.com/embed/ms_prB5cLI8" allowfullscreen></iframe>
         </div>
       </div>
-
       <div class="help-item">
         <h3>Desviación Estándar (σ)</h3>
         <p>Dispersión de los datos respecto a la media</p>
@@ -218,7 +253,6 @@
           <iframe src="https://www.youtube.com/embed/YC9158GWkpY" allowfullscreen></iframe>
         </div>
       </div>
-
       <div class="help-item">
         <h3>Varianza</h3>
         <p>Desviación estándar al cuadrado</p>
@@ -227,7 +261,6 @@
           <iframe src="https://www.youtube.com/embed/oZRaDwnpXkY" allowfullscreen></iframe>
         </div>
       </div>
-
       <div class="help-item">
         <h3>Sesgo</h3>
         <p>Asimetría de la distribución</p>
@@ -236,7 +269,6 @@
           <iframe src="https://www.youtube.com/embed/Oui8SSIBkTU" allowfullscreen></iframe>
         </div>
       </div>
-
       <div class="help-item">
         <h3>Curtosis</h3>
         <p>Medida de lo "puntiaguda" de la distribución</p>
@@ -245,7 +277,6 @@
           <iframe src="https://www.youtube.com/embed/WQB9qBfmiGM" allowfullscreen></iframe>
         </div>
       </div>
-
       <button onclick="hideHelp()">Cerrar Ayuda</button>
     </section>
   </div>
