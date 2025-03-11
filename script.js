@@ -48,18 +48,12 @@ Object.keys(cities).forEach(city => {
  * Función para mostrar secciones y actualizar el fondo
  **********************/
 function showSection(sectionId) {
-  const sections = ["solarSection", "panelSection", "dataSection", "analysisSection", "helpSection"];
+  const sections = ["solarSection", "panelSection", "dataSection", "analysisSection", "regressionSection", "algebraSection", "helpSection"];
   sections.forEach(id => {
     document.getElementById(id).style.display = (id === sectionId) ? "block" : "none";
   });
-
-  // Ocultar la sección Hero
   const hero = document.getElementById("heroSection");
-  if (hero) {
-    hero.style.display = "none";
-  }
-
-  // Cambiar el fondo dependiendo de la sección
+  if (hero) { hero.style.display = "none"; }
   if (sectionId === "solarSection") {
     document.body.style.backgroundImage = "url('calculadora.png')";
   } else if (sectionId === "panelSection") {
@@ -67,10 +61,8 @@ function showSection(sectionId) {
   } else if (sectionId === "dataSection" || sectionId === "analysisSection") {
     document.body.style.backgroundImage = "url('Estadistica.png')";
   } else {
-    // Para otras secciones o si no coincide, vuelve al fondo original
     document.body.style.backgroundImage = "url('solar_image.png')";
   }
-
   document.body.style.backgroundSize = "cover";
   document.body.style.backgroundPosition = "center center";
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -120,12 +112,10 @@ function updateMap(lat, lon) {
   if (!mapContainer) return;
   mapContainer.style.display = "block";
   mapContainer.style.height = "300px";
-
   if (map) {
     map.remove();
     map = null;
   }
-
   requestAnimationFrame(() => {
     map = L.map("map", { center: [lat, lon], zoom: 13 });
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -149,7 +139,6 @@ async function calculateEnergy() {
   const area = parseFloat(document.getElementById("panelArea").value);
   const efficiencyInput = parseFloat(document.getElementById("efficiency").value);
   const result = document.getElementById("result");
-
   if (isNaN(area) || area <= 0) {
     result.textContent = "Por favor, ingresa un área válida.";
     result.classList.add("error");
@@ -160,11 +149,9 @@ async function calculateEnergy() {
     result.classList.add("error");
     return;
   }
-
   result.classList.remove("error");
   const efficiency = efficiencyInput / 100;
   let lat, lon;
-
   if (sourceType === "city") {
     const selectedCity = citySelect.value;
     if (!cities[selectedCity]) {
@@ -183,7 +170,6 @@ async function calculateEnergy() {
       return;
     }
   }
-
   updateMap(lat, lon);
   const radiation = await getSolarRadiation(lat, lon);
   if (!radiation) {
@@ -191,10 +177,8 @@ async function calculateEnergy() {
     result.classList.add("error");
     return;
   }
-
   const dailyEnergy = radiation * area * efficiency;
   monthlyEnergy = dailyEnergy * 30;
-
   result.innerHTML = `
     Energía generada: ${dailyEnergy.toFixed(2)} kWh/día<br>
     Promedio mensual: ${monthlyEnergy.toFixed(2)} kWh/mes
@@ -209,7 +193,6 @@ function calculateSavings() {
   const consumption = parseFloat(document.getElementById("bimonthlyConsumption").value);
   const billAmount = parseFloat(document.getElementById("bimonthlyCost").value);
   const tariff = parseFloat(document.getElementById("electricityTariff").value);
-
   if (isNaN(consumption) || consumption <= 0 ||
       isNaN(billAmount) || billAmount <= 0) {
     savingsResult.textContent = "Por favor, ingresa valores válidos para consumo y monto del recibo.";
@@ -222,19 +205,16 @@ function calculateSavings() {
     return;
   }
   savingsResult.classList.remove("error");
-
   const costWithoutSolar = billAmount;
   const generatedBimonthly = monthlyEnergy * 2;
   const effectiveConsumption = Math.max(consumption - generatedBimonthly, 0);
   const costWithSolar = effectiveConsumption * tariff;
   const savings = costWithoutSolar - costWithSolar;
-
   savingsResult.innerHTML = `
     <strong>Costo sin paneles:</strong> $${costWithoutSolar.toFixed(2)} MXN (bimestral)<br>
     <strong>Costo con paneles:</strong> $${costWithSolar.toFixed(2)} MXN (bimestral)<br>
     <strong>Ahorro estimado:</strong> $${savings.toFixed(2)} MXN (bimestral)
   `;
-
   updateSavingsChart(costWithoutSolar, costWithSolar);
 }
 
@@ -244,11 +224,7 @@ function calculateSavings() {
 let savingsChart = null;
 function updateSavingsChart(costWithout, costWith) {
   const ctx = document.getElementById("savingsChart").getContext("2d");
-
-  if (savingsChart) {
-    savingsChart.destroy();
-  }
-
+  if (savingsChart) { savingsChart.destroy(); }
   savingsChart = new Chart(ctx, {
     type: "bar",
     data: {
@@ -261,12 +237,7 @@ function updateSavingsChart(costWithout, costWith) {
         borderWidth: 2
       }]
     },
-    options: {
-      responsive: true,
-      scales: {
-        y: { beginAtZero: true }
-      }
-    }
+    options: { responsive: true, scales: { y: { beginAtZero: true } } }
   });
 }
 
@@ -295,9 +266,7 @@ function updatePanelDescription() {
   const descElem = document.getElementById("panelDescription");
   if (panels[selectedModel]) {
     descElem.textContent = panels[selectedModel].desc + " (Potencia aprox.: " + panels[selectedModel].watt + "W)";
-  } else {
-    descElem.textContent = "";
-  }
+  } else { descElem.textContent = ""; }
 }
 
 function calculatePanels() {
@@ -305,7 +274,6 @@ function calculatePanels() {
   const panelModel = document.getElementById("panelModel").value;
   const requiredArea = parseFloat(document.getElementById("requiredArea").value);
   const resultElem = document.getElementById("panelResult");
-
   if (isNaN(requiredArea) || requiredArea <= 0) {
     resultElem.textContent = "Por favor, ingresa un área válida.";
     resultElem.classList.add("error");
@@ -340,13 +308,12 @@ const industrialPanels = {
 };
 
 /**********************
- * Funciones para la sección Ingresar Datos (Gráficas)
+ * Sección: Ingresar Datos (Gráficas)
  **********************/
 function handleDataGraphTypeChange() {
   const graphType = document.getElementById("dataGraphType").value;
   const numericContainer = document.getElementById("numericDataContainer");
   const xyContainer = document.getElementById("xyDataContainer");
-
   if (graphType === "scatter") {
     xyContainer.style.display = "block";
     numericContainer.style.display = "none";
@@ -360,33 +327,23 @@ function processData() {
   const graphType = document.getElementById("dataGraphType").value;
   const resultContainer = document.getElementById("customDataResult");
   const ctx = document.getElementById("dataChart").getContext("2d");
-
-  // Destruir gráfica anterior si existe
-  if (window.dataChartInstance) {
-    window.dataChartInstance.destroy();
-  }
-
+  if (window.dataChartInstance) { window.dataChartInstance.destroy(); }
   if (graphType === "scatter") {
     let xyInput = document.getElementById("xyDataInput").value.trim();
     let scatterData = [];
     if (xyInput) {
-      // Se espera el formato: "x,y; x,y; x,y"
       const pairs = xyInput.split(";").map(pair => pair.trim()).filter(pair => pair !== "");
       let valid = true;
       pairs.forEach(pair => {
         const nums = pair.split(",").map(n => Number(n.trim()));
-        if (nums.length !== 2 || isNaN(nums[0]) || isNaN(nums[1])) {
-          valid = false;
-        } else {
-          scatterData.push({ x: nums[0], y: nums[1] });
-        }
+        if (nums.length !== 2 || isNaN(nums[0]) || isNaN(nums[1])) { valid = false; }
+        else { scatterData.push({ x: nums[0], y: nums[1] }); }
       });
       if (!valid || scatterData.length === 0) {
         alert("Por favor ingresa datos XY válidos en el formato: x,y; x,y; ...");
         return;
       }
     } else {
-      // Si no se ingresa nada, genera datos aleatorios
       for (let i = 0; i < 20; i++) {
         scatterData.push({ x: Math.random() * 100, y: Math.random() * 100 });
       }
@@ -406,7 +363,6 @@ function processData() {
     let sum = data.reduce((a, b) => a + b, 0);
     let mean = sum / data.length;
     resultContainer.innerHTML = `<p>Media: ${mean.toFixed(2)}</p>`;
-
     if (graphType === "histogram") {
       renderHistogram(ctx, data);
     } else if (graphType === "boxplot") {
@@ -444,18 +400,15 @@ function renderHistogram(ctx, data) {
   const max = Math.max(...data);
   const binWidth = (max - min) / bins;
   let counts = new Array(bins).fill(0);
-
   data.forEach(x => {
     let index = Math.floor((x - min) / binWidth);
     if (index === bins) index = bins - 1;
     counts[index]++;
   });
-
   let labels = [];
   for (let i = 0; i < bins; i++) {
     labels.push(`${(min + i * binWidth).toFixed(1)} - ${(min + (i + 1) * binWidth).toFixed(1)}`);
   }
-
   window.dataChartInstance = new Chart(ctx, {
     type: "bar",
     data: {
@@ -471,13 +424,8 @@ function renderHistogram(ctx, data) {
     options: {
       responsive: true,
       scales: {
-        y: {
-          beginAtZero: true,
-          title: { display: true, text: "Frecuencia" }
-        },
-        x: {
-          title: { display: true, text: "Intervalos" }
-        }
+        y: { beginAtZero: true, title: { display: true, text: "Frecuencia" } },
+        x: { title: { display: true, text: "Intervalos" } }
       }
     }
   });
@@ -499,60 +447,220 @@ function renderBoxplot(ctx, data) {
         itemRadius: 0
       }]
     },
+    options: { responsive: true, scales: { y: { beginAtZero: false } } }
+  });
+}
+
+/**********************
+ * Sección: Regresión (Mínimos Cuadrados)
+ **********************/
+function toggleDataInput() {
+  const method = document.getElementById("dataInputMethod").value;
+  document.getElementById("manualInputSection").style.display = (method === "manual") ? "block" : "none";
+  document.getElementById("fileInputSection").style.display = (method === "file") ? "block" : "none";
+  // Si se cambia el método, se destruye cualquier gráfica existente
+  if (window.dataChartInstance) {
+    window.dataChartInstance.destroy();
+  }
+}
+
+function processRegression() {
+  const method = document.getElementById("dataInputMethod").value;
+  if (method === "manual") {
+    processManualRegression();
+  } else {
+    processFileRegression();
+  }
+}
+
+function processManualRegression() {
+  const input = document.getElementById("regressionInput").value.trim();
+  if (!input) {
+    alert("Por favor, ingresa datos en el formato: x,y; x,y; ...");
+    return;
+  }
+  const dataPoints = parseData(input);
+  if (!dataPoints) return;
+  calculateAndRenderRegression(dataPoints);
+}
+
+function processFileRegression() {
+  const fileInput = document.getElementById("fileUpload");
+  if (!fileInput.files.length) {
+    alert("Por favor, selecciona un archivo Excel.");
+    return;
+  }
+  const file = fileInput.files[0];
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const data = new Uint8Array(e.target.result);
+    const workbook = XLSX.read(data, { type: "array" });
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+    if (!jsonData.length || jsonData[0].length < 2) {
+      alert("El archivo debe contener al menos dos columnas (X e Y).");
+      return;
+    }
+    const dataPoints = jsonData.map(row => ({ x: parseFloat(row[0]), y: parseFloat(row[1]) }))
+                                .filter(pt => !isNaN(pt.x) && !isNaN(pt.y));
+    if (dataPoints.length === 0) {
+      alert("No se encontraron datos válidos en el archivo.");
+      return;
+    }
+    calculateAndRenderRegression(dataPoints);
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function parseData(input) {
+  const pairs = input.split(";").map(pair => pair.trim()).filter(pair => pair !== "");
+  let dataPoints = [];
+  for (let pair of pairs) {
+    const nums = pair.split(",").map(n => Number(n.trim()));
+    if (nums.length !== 2 || isNaN(nums[0]) || isNaN(nums[1])) {
+      alert("Datos no válidos. Usa el formato: x,y; x,y; ...");
+      return null;
+    }
+    dataPoints.push({ x: nums[0], y: nums[1] });
+  }
+  return dataPoints;
+}
+
+function calculateAndRenderRegression(dataPoints) {
+  const resultElem = document.getElementById("regressionResult");
+  const ctx = document.getElementById("regressionChart").getContext("2d");
+  const n = dataPoints.length;
+  let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+  dataPoints.forEach(pt => {
+    sumX += pt.x;
+    sumY += pt.y;
+    sumXY += pt.x * pt.y;
+    sumXX += pt.x * pt.x;
+  });
+  const m = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+  const b = (sumY - m * sumX) / n;
+  resultElem.innerHTML = `<p>Recta de regresión: y = ${m.toFixed(2)}x + ${b.toFixed(2)}</p>`;
+  const xValues = dataPoints.map(pt => pt.x);
+  const minX = Math.min(...xValues);
+  const maxX = Math.max(...xValues);
+  const regressionLine = [
+    { x: minX, y: m * minX + b },
+    { x: maxX, y: m * maxX + b }
+  ];
+  window.dataChartInstance = new Chart(ctx, {
+    type: "scatter",
+    data: {
+      datasets: [
+        {
+          label: "Datos",
+          data: dataPoints,
+          backgroundColor: "#e74c3c",
+          borderColor: "#c0392b",
+          pointRadius: 5
+        },
+        {
+          label: "Línea de Regresión",
+          data: regressionLine,
+          type: "line",
+          fill: false,
+          borderColor: "#2ecc71",
+          borderWidth: 2,
+          pointRadius: 0
+        }
+      ]
+    },
     options: {
       responsive: true,
       scales: {
-        y: {
-          beginAtZero: false
-        }
+        x: { title: { display: true, text: "Eje X" } },
+        y: { title: { display: true, text: "Eje Y" } }
       }
     }
   });
 }
 
 /**********************
- * Análisis Estadístico (solo texto)
+ * Sección: Álgebra (Matrices)
+ **********************/
+function parseMatrix(text) {
+  // Cada fila separada por salto de línea y valores por coma.
+  return text.split("\n").map(row =>
+    row.split(",").map(val => parseFloat(val.trim())).filter(val => !isNaN(val))
+  );
+}
+
+function addMatrices() {
+  const matrixA = parseMatrix(document.getElementById("matrixA").value);
+  const matrixB = parseMatrix(document.getElementById("matrixB").value);
+  try {
+    const result = math.add(matrixA, matrixB);
+    document.getElementById("algebraResult1").innerHTML = `<p><strong>A + B =</strong> ${JSON.stringify(result)}</p>`;
+  } catch (error) {
+    document.getElementById("algebraResult1").innerHTML = `<span class="error">Error al sumar matrices: ${error}</span>`;
+  }
+}
+
+function multiplyMatrices() {
+  const matrixA = parseMatrix(document.getElementById("matrixA").value);
+  const matrixB = parseMatrix(document.getElementById("matrixB").value);
+  try {
+    const result = math.multiply(matrixA, matrixB);
+    document.getElementById("algebraResult1").innerHTML = `<p><strong>A × B =</strong> ${JSON.stringify(result)}</p>`;
+  } catch (error) {
+    document.getElementById("algebraResult1").innerHTML = `<span class="error">Error al multiplicar matrices: ${error}</span>`;
+  }
+}
+
+function transposeMatrix() {
+  const matrix = parseMatrix(document.getElementById("matrixSingle").value);
+  try {
+    const result = math.transpose(matrix);
+    document.getElementById("algebraResult2").innerHTML = `<p><strong>Transpuesta =</strong> ${JSON.stringify(result)}</p>`;
+  } catch (error) {
+    document.getElementById("algebraResult2").innerHTML = `<span class="error">Error al transponer la matriz: ${error}</span>`;
+  }
+}
+
+function invertMatrix() {
+  const matrix = parseMatrix(document.getElementById("matrixSingle").value);
+  try {
+    const result = math.inv(matrix);
+    document.getElementById("algebraResult2").innerHTML = `<p><strong>Inversa =</strong> ${JSON.stringify(result)}</p>`;
+  } catch (error) {
+    document.getElementById("algebraResult2").innerHTML = `<span class="error">Error al invertir la matriz: ${error}</span>`;
+  }
+}
+
+/**********************
+ * Sección: Ingresar Datos (Análisis Estadístico)
  **********************/
 function calculateStatsOnly() {
   const input = document.getElementById("analysisInput").value;
   const resultElem = document.getElementById("analysisResult");
-
   if (!input) {
     resultElem.innerHTML = `<span class="error">Por favor, ingresa datos.</span>`;
     return;
   }
-
   let data = input.split(",").map(num => Number(num.trim())).filter(num => !isNaN(num));
   if (data.length === 0) {
     resultElem.innerHTML = `<span class="error">Por favor, ingresa datos numéricos válidos.</span>`;
     return;
   }
-
   data.sort((a, b) => a - b);
   const n = data.length;
   const mean = data.reduce((sum, val) => sum + val, 0) / n;
   const median = (n % 2 === 0) ? (data[n/2 - 1] + data[n/2]) / 2 : data[Math.floor(n/2)];
-
   const freq = {};
-  data.forEach(x => {
-    freq[x] = (freq[x] || 0) + 1;
-  });
+  data.forEach(x => { freq[x] = (freq[x] || 0) + 1; });
   let mode = Object.keys(freq).filter(x => freq[x] === Math.max(...Object.values(freq)));
   mode = (mode.length === n) ? "No hay moda" : mode.join(", ");
-
   const variance = data.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / n;
   const stddev = Math.sqrt(variance);
-
-  // Sesgo
   const skewness = data.reduce((sum, val) => sum + Math.pow(val - mean, 3), 0) / (n * Math.pow(stddev, 3));
-  // Curtosis
   const kurtosis = (data.reduce((sum, val) => sum + Math.pow(val - mean, 4), 0) / (n * Math.pow(stddev, 4))) - 3;
-
-  // Cuartiles
   const Q1 = (n % 2 === 0) ? medianOf(data.slice(0, n/2)) : medianOf(data.slice(0, Math.floor(n/2)));
   const Q3 = (n % 2 === 0) ? medianOf(data.slice(n/2)) : medianOf(data.slice(Math.ceil(n/2)));
   const IQR = Q3 - Q1;
-
   resultElem.innerHTML = `
     <strong>Media:</strong> ${mean.toFixed(2)}<br>
     <strong>Mediana:</strong> ${median}<br>
@@ -587,17 +695,14 @@ function hideHelp() {
  * Función para volver al inicio (Hero)
  **********************/
 function returnHome() {
-  const sections = ["solarSection", "panelSection", "dataSection", "analysisSection", "helpSection"];
+  const sections = ["solarSection", "panelSection", "dataSection", "analysisSection", "regressionSection", "algebraSection", "helpSection"];
   sections.forEach(id => {
     document.getElementById(id).style.display = "none";
   });
-
   const hero = document.getElementById("heroSection");
   hero.style.display = "flex";
-
   document.body.style.backgroundImage = "url('solar_image.png')";
   document.body.style.backgroundSize = "cover";
   document.body.style.backgroundPosition = "center center";
-
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
