@@ -285,6 +285,17 @@ button:hover {
   border: none;
 }
 
+/* Estilo para el input de archivo Excel */
+input[type="file"] {
+  display: block;
+  margin: 10px 0;
+  padding: 5px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  color: white;
+}
+
 /* Footer del equipo */
 .team-footer {
   position: fixed;
