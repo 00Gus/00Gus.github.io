@@ -18,6 +18,9 @@
   <!-- Librería math.js para operaciones con matrices -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.min.js"></script>
 
+  <!-- Librería Plotly para gráficos 3D -->
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
   <!-- Leaflet CSS para el mapa -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 </head>
@@ -33,7 +36,9 @@
         <button onclick="showSection('panelSection')">¿Cuántos paneles necesitas?</button>
         <button onclick="showSection('dataSection')">Ingresar Datos</button>
         <button onclick="showSection('analysisSection')">Análisis Estadístico</button>
-        <button onclick="showSection('regressionSection')">Regresión (Mínimos Cuadrados)</button>
+        <button onclick="showSection('regressionSection')">Regresión Lineal</button>
+        <button onclick="showSection('parabolaSection')">Ajuste de Parábola</button>
+        <button onclick="showSection('planeSection')">Ajuste de Plano (3D)</button>
         <button onclick="showSection('algebraSection')">Álgebra (Matrices)</button>
         <button onclick="showSection('helpSection')">Ayuda</button>
       </div>
@@ -178,6 +183,34 @@
 
     <hr class="separator">
 
+    <!-- Sección: Ajuste de Parábola -->
+    <section class="container" id="parabolaSection" style="display: none;">
+      <h2>Ajuste de Parábola</h2>
+      <p>Ingresa tus datos en el formato "x,y; x,y; ..." para ajustar la parábola: y = ax² + bx + c.</p>
+      <textarea id="parabolaInput" placeholder="Ej: 1,1; 7,2; 1.5,3; 2,2; 2.5,4; 4,5; 5,4; 6,1; 6,3; 6,4"></textarea>
+      <button onclick="processParabola()">Procesar Parábola</button>
+      <div id="parabolaResult"></div>
+      <div class="chart-container">
+        <canvas id="parabolaChart"></canvas>
+      </div>
+      <button class="back-home-btn" onclick="returnHome()"><span>🔙 Volver al Inicio</span></button>
+    </section>
+
+    <hr class="separator">
+
+    <!-- Sección: Ajuste de Plano (3D) -->
+    <section class="container" id="planeSection" style="display: none;">
+      <h2>Ajuste de Plano (3D)</h2>
+      <p>Ingresa tus datos en el formato "x,y,z; x,y,z; ..." para ajustar un plano (z = ax + by + c).</p>
+      <textarea id="planeInput" placeholder="Ej: 1,2,3; 2,3,5; 3,4,7; 4,5,9"></textarea>
+      <button onclick="processPlane()">Procesar Plano</button>
+      <div id="planeResult"></div>
+      <div id="planeChart" class="chart-container" style="height:400px;"></div>
+      <button class="back-home-btn" onclick="returnHome()"><span>🔙 Volver al Inicio</span></button>
+    </section>
+
+    <hr class="separator">
+
     <!-- Sección: Álgebra (Matrices) -->
     <section class="container" id="algebraSection" style="display: none;">
       <h2>Operaciones con Matrices</h2>
@@ -197,7 +230,7 @@
       <div id="algebraResult1"></div>
       <hr class="separator2">
       <p>Para una sola matriz, ingresa la matriz y selecciona la operación:</p>
-      <textarea id="matrixSingle" placeholder="Ej: 1,2,3&#10;4,5,6"></textarea>
+      <textarea id="matrixSingle" placeholder="Ej: 4,7&#10;2,6"></textarea>
       <button onclick="transposeMatrix()">Transponer Matriz</button>
       <button onclick="invertMatrix()">Inversa de la Matriz</button>
       <div id="algebraResult2"></div>
