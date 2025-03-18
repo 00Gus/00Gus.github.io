@@ -57,14 +57,19 @@ document.addEventListener("DOMContentLoaded", function() {
     });
     const hero = document.getElementById("heroSection");
     if (hero) { hero.style.display = "none"; }
+    // Actualizar fondo según la sección
     if (sectionId === "solarSection") {
       document.body.style.backgroundImage = "url('calculadora.png')";
     } else if (sectionId === "panelSection") {
       document.body.style.backgroundImage = "url('Panelsolar.png')";
     } else if (sectionId === "dataSection" || sectionId === "analysisSection") {
       document.body.style.backgroundImage = "url('Estadistica.png')";
+    } else if (sectionId === "regressionSection") {
+      document.body.style.backgroundImage = "url('Regresion.png')";
     } else if (sectionId === "parabolaSection" || sectionId === "planeSection") {
       document.body.style.backgroundImage = "url('graficas.png')";
+    } else if (sectionId === "algebraSection") {
+      document.body.style.backgroundImage = "url('matrices.png')";
     } else {
       document.body.style.backgroundImage = "url('solar_image.png')";
     }
@@ -306,172 +311,254 @@ document.addEventListener("DOMContentLoaded", function() {
   };
 
   /**********************
-   * Sección: Ingresar Datos (Gráficas)
+   * Sección: Ingresar Datos
    **********************/
-  window.handleDataGraphTypeChange = function() {
-    const graphType = document.getElementById("dataGraphType").value;
-    const numericContainer = document.getElementById("numericDataContainer");
-    const xyContainer = document.getElementById("xyDataContainer");
-    if (graphType === "scatter") {
-      xyContainer.style.display = "block";
-      numericContainer.style.display = "none";
+  window.toggleDataInputData = function() {
+    const method = document.getElementById("dataInputMethodData").value;
+    if(method === "manual") {
+      document.getElementById("dataManualContainer").style.display = "block";
+      document.getElementById("dataFileContainer").style.display = "none";
     } else {
-      xyContainer.style.display = "none";
-      numericContainer.style.display = "block";
+      document.getElementById("dataManualContainer").style.display = "none";
+      document.getElementById("dataFileContainer").style.display = "block";
     }
   };
 
   window.processData = function() {
+    const method = document.getElementById("dataInputMethodData").value;
     const graphType = document.getElementById("dataGraphType").value;
     const resultContainer = document.getElementById("customDataResult");
     const ctx = document.getElementById("dataChart").getContext("2d");
-    if (window.dataChartInstance) { window.dataChartInstance.destroy(); }
-    if (graphType === "scatter") {
-      let xyInput = document.getElementById("xyDataInput").value.trim();
-      let scatterData = [];
-      if (xyInput) {
-        const pairs = xyInput.split(";").map(pair => pair.trim()).filter(pair => pair !== "");
-        let valid = true;
-        pairs.forEach(pair => {
-          const nums = pair.split(",").map(n => Number(n.trim()));
-          if (nums.length !== 2 || isNaN(nums[0]) || isNaN(nums[1])) { valid = false; }
-          else { scatterData.push({ x: nums[0], y: nums[1] }); }
-        });
-        if (!valid || scatterData.length === 0) {
-          alert("Por favor ingresa datos XY válidos en el formato: x,y; x,y; ...");
+    if(window.dataChartInstance) { window.dataChartInstance.destroy(); }
+    if(method === "file") {
+      const fileInput = document.getElementById("dataFileUpload");
+      if(!fileInput.files.length) { alert("Por favor, selecciona un archivo Excel."); return; }
+      const file = fileInput.files[0];
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+        if(graphType === "scatter") {
+          let scatterData = [];
+          jsonData.forEach(row => {
+            if(row.length >= 2) {
+              let x = parseFloat(row[0]), y = parseFloat(row[1]);
+              if(!isNaN(x) && !isNaN(y)) scatterData.push({x: x, y: y});
+            }
+          });
+          if(scatterData.length === 0) { alert("No se encontraron datos válidos para gráfico XY en el archivo."); return; }
+          renderScatter(ctx, scatterData);
+        } else {
+          let fileData = [];
+          jsonData.forEach(row => {
+            row.forEach(val => {
+              let num = parseFloat(val);
+              if(!isNaN(num)) fileData.push(num);
+            });
+          });
+          if(fileData.length === 0) { alert("No se encontraron datos válidos en el archivo."); return; }
+          let sum = fileData.reduce((a, b) => a + b, 0);
+          let mean = sum / fileData.length;
+          resultContainer.innerHTML = `<p>Media: ${mean.toFixed(2)}</p>`;
+          if(graphType === "histogram") {
+            renderHistogram(ctx, fileData);
+          } else if(graphType === "boxplot") {
+            renderBoxplot(ctx, fileData);
+          }
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    } else {
+      if(graphType === "scatter") {
+        let xyInput = document.getElementById("xyDataInput").value.trim();
+        let scatterData = [];
+        if(xyInput) {
+          const pairs = xyInput.split(";").map(pair => pair.trim()).filter(pair => pair !== "");
+          let valid = true;
+          pairs.forEach(pair => {
+            const nums = pair.split(",").map(n => Number(n.trim()));
+            if(nums.length !== 2 || isNaN(nums[0]) || isNaN(nums[1])) { valid = false; }
+            else { scatterData.push({x: nums[0], y: nums[1]}); }
+          });
+          if(!valid || scatterData.length === 0) {
+            alert("Por favor ingresa datos XY válidos en el formato: x,y; x,y; ...");
+            return;
+          }
+        } else {
+          for(let i = 0; i < 20; i++) {
+            scatterData.push({x: Math.random()*100, y: Math.random()*100});
+          }
+        }
+        renderScatter(ctx, scatterData);
+      } else {
+        let input = document.getElementById("customDataInput").value;
+        if(!input.trim()) {
+          resultContainer.innerHTML = '<span class="error">Por favor, ingresa datos.</span>';
           return;
         }
-      } else {
-        for (let i = 0; i < 20; i++) {
-          scatterData.push({ x: Math.random() * 100, y: Math.random() * 100 });
+        let data = input.split(",").map(num => Number(num.trim())).filter(num => !isNaN(num));
+        if(data.length === 0) {
+          resultContainer.innerHTML = '<span class="error">Datos no válidos.</span>';
+          return;
         }
-      }
-      renderScatter(ctx, scatterData);
-    } else {
-      let input = document.getElementById("customDataInput").value;
-      if (!input.trim()) {
-        resultContainer.innerHTML = '<span class="error">Por favor, ingresa datos.</span>';
-        return;
-      }
-      let data = input.split(",").map(num => Number(num.trim())).filter(num => !isNaN(num));
-      if (data.length === 0) {
-        resultContainer.innerHTML = '<span class="error">Datos no válidos.</span>';
-        return;
-      }
-      let sum = data.reduce((a, b) => a + b, 0);
-      let mean = sum / data.length;
-      resultContainer.innerHTML = `<p>Media: ${mean.toFixed(2)}</p>`;
-      if (document.getElementById("dataGraphType").value === "histogram") {
-        renderHistogram(ctx, data);
-      } else if (document.getElementById("dataGraphType").value === "boxplot") {
-        renderBoxplot(ctx, data);
+        let sum = data.reduce((a, b) => a + b, 0);
+        let mean = sum / data.length;
+        resultContainer.innerHTML = `<p>Media: ${mean.toFixed(2)}</p>`;
+        if(graphType === "histogram") {
+          renderHistogram(ctx, data);
+        } else if(graphType === "boxplot") {
+          renderBoxplot(ctx, data);
+        }
       }
     }
   };
 
-  function renderScatter(ctx, scatterData) {
-    window.dataChartInstance = new Chart(ctx, {
-      type: "scatter",
-      data: {
-        datasets: [{
-          label: "Datos XY",
-          data: scatterData,
-          backgroundColor: "#e74c3c",
-          borderColor: "#c0392b",
-          borderWidth: 2,
-          pointRadius: 5
-        }]
-      },
-      options: {
-        responsive: true,
-        scales: {
-          x: { beginAtZero: true, title: { display: true, text: "Eje X" } },
-          y: { beginAtZero: true, title: { display: true, text: "Eje Y" } }
-        }
-      }
-    });
-  }
-
-  function renderHistogram(ctx, data) {
-    const bins = 10;
-    const min = Math.min(...data);
-    const max = Math.max(...data);
-    const binWidth = (max - min) / bins;
-    let counts = new Array(bins).fill(0);
-    data.forEach(x => {
-      let index = Math.floor((x - min) / binWidth);
-      if (index === bins) index = bins - 1;
-      counts[index]++;
-    });
-    let labels = [];
-    for (let i = 0; i < bins; i++) {
-      labels.push(`${(min + i * binWidth).toFixed(1)} - ${(min + (i + 1) * binWidth).toFixed(1)}`);
+  /**********************
+   * Sección: Análisis Estadístico
+   **********************/
+  window.toggleStatsInput = function() {
+    const method = document.getElementById("statsInputMethod").value;
+    if(method === "manual") {
+      document.getElementById("statsManualContainer").style.display = "block";
+      document.getElementById("statsFileContainer").style.display = "none";
+    } else {
+      document.getElementById("statsManualContainer").style.display = "none";
+      document.getElementById("statsFileContainer").style.display = "block";
     }
-    window.dataChartInstance = new Chart(ctx, {
-      type: "bar",
-      data: {
-        labels: labels,
-        datasets: [{
-          label: "Frecuencia",
-          data: counts,
-          backgroundColor: "#2ecc71",
-          borderColor: "#27ae60",
-          borderWidth: 1
-        }]
-      },
-      options: {
-        responsive: true,
-        scales: {
-          y: { beginAtZero: true, title: { display: true, text: "Frecuencia" } },
-          x: { title: { display: true, text: "Intervalos" } }
-        }
-      }
-    });
-  }
+  };
 
-  function renderBoxplot(ctx, data) {
-    window.dataChartInstance = new Chart(ctx, {
-      type: 'boxplot',
-      data: {
-        labels: ['Distribución'],
-        datasets: [{
-          label: 'Boxplot de Datos',
-          data: [data],
-          backgroundColor: 'rgba(52, 152, 219, 0.5)',
-          borderColor: 'rgba(41, 128, 185, 1)',
-          borderWidth: 1,
-          outlierColor: '#e74c3c',
-          padding: 10,
-          itemRadius: 0
-        }]
-      },
-      options: { responsive: true, scales: { y: { beginAtZero: false } } }
-    });
+  window.calculateStatsOnly = function() {
+    const method = document.getElementById("statsInputMethod").value;
+    const resultElem = document.getElementById("analysisResult");
+    if(method === "file") {
+      const fileInput = document.getElementById("statsFileUpload");
+      if(!fileInput.files.length) { alert("Por favor, selecciona un archivo Excel."); return; }
+      const file = fileInput.files[0];
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+        let fileData = [];
+        jsonData.forEach(row => {
+          row.forEach(val => {
+            let num = parseFloat(val);
+            if(!isNaN(num)) fileData.push(num);
+          });
+        });
+        if(fileData.length === 0) { alert("No se encontraron datos válidos en el archivo."); return; }
+        fileData.sort((a,b) => a-b);
+        const n = fileData.length;
+        const mean = fileData.reduce((sum, val) => sum + val, 0) / n;
+        const median = (n % 2 === 0) ? (fileData[n/2 - 1] + fileData[n/2]) / 2 : fileData[Math.floor(n/2)];
+        const freq = {};
+        fileData.forEach(x => { freq[x] = (freq[x] || 0) + 1; });
+        let mode = Object.keys(freq).filter(x => freq[x] === Math.max(...Object.values(freq)));
+        mode = (mode.length === n) ? "No hay moda" : mode.join(", ");
+        const variance = fileData.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / n;
+        const stddev = Math.sqrt(variance);
+        const skewness = fileData.reduce((sum, val) => sum + Math.pow(val - mean, 3), 0) / (n * Math.pow(stddev, 3));
+        const kurtosis = (fileData.reduce((sum, val) => sum + Math.pow(val - mean, 4), 0) / (n * Math.pow(stddev, 4))) - 3;
+        const Q1 = (n % 2 === 0) ? medianOf(fileData.slice(0, n/2)) : medianOf(fileData.slice(0, Math.floor(n/2)));
+        const Q3 = (n % 2 === 0) ? medianOf(fileData.slice(n/2)) : medianOf(fileData.slice(Math.ceil(n/2)));
+        const IQR = Q3 - Q1;
+        resultElem.innerHTML = `
+          <strong>Media:</strong> ${mean.toFixed(2)}<br>
+          <strong>Mediana:</strong> ${median}<br>
+          <strong>Moda:</strong> ${mode}<br>
+          <strong>Desviación Estándar:</strong> ${stddev.toFixed(2)}<br>
+          <strong>Sesgo:</strong> ${skewness.toFixed(2)}<br>
+          <strong>Curtosis:</strong> ${kurtosis.toFixed(2)}<br>
+          <strong>Cuartiles:</strong> Q1 = ${Q1}, Mediana = ${median}, Q3 = ${Q3}<br>
+          <strong>IQR:</strong> ${IQR.toFixed(2)}
+        `;
+      };
+      reader.readAsArrayBuffer(file);
+      return;
+    } else {
+      let input = document.getElementById("analysisInput").value;
+      if(!input) {
+        resultElem.innerHTML = `<span class="error">Por favor, ingresa datos.</span>`;
+        return;
+      }
+      let data = input.split(",").map(num => Number(num.trim())).filter(num => !isNaN(num));
+      if(data.length === 0) {
+        resultElem.innerHTML = `<span class="error">Por favor, ingresa datos numéricos válidos.</span>`;
+        return;
+      }
+      data.sort((a,b) => a-b);
+      const n = data.length;
+      const mean = data.reduce((sum, val) => sum + val, 0) / n;
+      const median = (n % 2 === 0) ? (data[n/2 - 1] + data[n/2]) / 2 : data[Math.floor(n/2)];
+      const freq = {};
+      data.forEach(x => { freq[x] = (freq[x] || 0) + 1; });
+      let mode = Object.keys(freq).filter(x => freq[x] === Math.max(...Object.values(freq)));
+      mode = (mode.length === n) ? "No hay moda" : mode.join(", ");
+      const variance = data.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / n;
+      const stddev = Math.sqrt(variance);
+      const skewness = data.reduce((sum, val) => sum + Math.pow(val - mean, 3), 0) / (n * Math.pow(stddev, 3));
+      const kurtosis = (data.reduce((sum, val) => sum + Math.pow(val - mean, 4), 0) / (n * Math.pow(stddev, 4))) - 3;
+      const Q1 = (n % 2 === 0) ? medianOf(data.slice(0, n/2)) : medianOf(data.slice(0, Math.floor(n/2)));
+      const Q3 = (n % 2 === 0) ? medianOf(data.slice(n/2)) : medianOf(data.slice(Math.ceil(n/2)));
+      const IQR = Q3 - Q1;
+      resultElem.innerHTML = `
+        <strong>Media:</strong> ${mean.toFixed(2)}<br>
+        <strong>Mediana:</strong> ${median}<br>
+        <strong>Moda:</strong> ${mode}<br>
+        <strong>Desviación Estándar:</strong> ${stddev.toFixed(2)}<br>
+        <strong>Sesgo:</strong> ${skewness.toFixed(2)}<br>
+        <strong>Curtosis:</strong> ${kurtosis.toFixed(2)}<br>
+        <strong>Cuartiles:</strong> Q1 = ${Q1}, Mediana = ${median}, Q3 = ${Q3}<br>
+        <strong>IQR:</strong> ${IQR.toFixed(2)}
+      `;
+    }
+  };
+
+  function medianOf(arr) {
+    const len = arr.length;
+    if(len === 0) return 0;
+    return (len % 2 === 0)
+      ? (arr[len/2 - 1] + arr[len/2]) / 2
+      : arr[Math.floor(len/2)];
   }
 
   /**********************
-   * Sección: Regresión Lineal (2D)
+   * Sección: Regresión Lineal - Toggle de método de ingreso
    **********************/
+  window.toggleDataInput = function() {
+    const method = document.getElementById("dataInputMethod").value;
+    if(method === "manual") {
+      document.getElementById("manualInputSection").style.display = "block";
+      document.getElementById("fileInputSection").style.display = "none";
+    } else {
+      document.getElementById("manualInputSection").style.display = "none";
+      document.getElementById("fileInputSection").style.display = "block";
+    }
+  };
+
   window.processRegression = function() {
     const method = document.getElementById("dataInputMethod").value;
-    if (method === "manual") { processManualRegression(); }
+    if(method === "manual") { processManualRegression(); }
     else { processFileRegression(); }
   };
 
   function processManualRegression() {
     const input = document.getElementById("regressionInput").value.trim();
-    if (!input) {
+    if(!input) {
       alert("Por favor, ingresa datos en el formato: x,y; x,y; ...");
       return;
     }
     const dataPoints = parseData(input);
-    if (!dataPoints) return;
+    if(!dataPoints) return;
     calculateAndRenderRegression(dataPoints);
   }
 
   function processFileRegression() {
     const fileInput = document.getElementById("fileUpload");
-    if (!fileInput.files.length) {
+    if(!fileInput.files.length) {
       alert("Por favor, selecciona un archivo Excel.");
       return;
     }
@@ -482,13 +569,13 @@ document.addEventListener("DOMContentLoaded", function() {
       const workbook = XLSX.read(data, { type: "array" });
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
       const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-      if (!jsonData.length || jsonData[0].length < 2) {
+      if(!jsonData.length || jsonData[0].length < 2) {
         alert("El archivo debe contener al menos dos columnas (X e Y).");
         return;
       }
       const dataPoints = jsonData.map(row => ({ x: parseFloat(row[0]), y: parseFloat(row[1]) }))
                                   .filter(pt => !isNaN(pt.x) && !isNaN(pt.y));
-      if (dataPoints.length === 0) {
+      if(dataPoints.length === 0) {
         alert("No se encontraron datos válidos en el archivo.");
         return;
       }
@@ -500,9 +587,9 @@ document.addEventListener("DOMContentLoaded", function() {
   function parseData(input) {
     const pairs = input.split(";").map(pair => pair.trim()).filter(pair => pair !== "");
     let dataPoints = [];
-    for (let pair of pairs) {
+    for(let pair of pairs) {
       const nums = pair.split(",").map(n => Number(n.trim()));
-      if (nums.length !== 2 || isNaN(nums[0]) || isNaN(nums[1])) {
+      if(nums.length !== 2 || isNaN(nums[0]) || isNaN(nums[1])) {
         alert("Datos no válidos. Usa el formato: x,y; x,y; ...");
         return null;
       }
@@ -532,7 +619,7 @@ document.addEventListener("DOMContentLoaded", function() {
       { x: minX, y: m * minX + b },
       { x: maxX, y: m * maxX + b }
     ];
-    if (window.dataChartInstance) { window.dataChartInstance.destroy(); }
+    if(window.dataChartInstance) { window.dataChartInstance.destroy(); }
     window.dataChartInstance = new Chart(ctx, {
       type: "scatter",
       data: {
@@ -566,16 +653,55 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 
   /**********************
-   * Sección: Ajuste de Parábola (cuadrática)
+   * Sección: Ajuste de Parábola
    **********************/
+  window.toggleParabolaInput = function() {
+    const method = document.getElementById("parabolaInputMethod").value;
+    if(method === "manual") {
+      document.getElementById("parabolaManualContainer").style.display = "block";
+      document.getElementById("parabolaFileContainer").style.display = "none";
+    } else {
+      document.getElementById("parabolaManualContainer").style.display = "none";
+      document.getElementById("parabolaFileContainer").style.display = "block";
+    }
+  };
+
   window.processParabola = function() {
+    const method = document.getElementById("parabolaInputMethod").value;
+    if(method === "file") {
+      const fileInput = document.getElementById("parabolaFileUpload");
+      if(!fileInput.files.length) { alert("Por favor, selecciona un archivo Excel."); return; }
+      const file = fileInput.files[0];
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+        let dataPoints = [];
+        jsonData.forEach(row => {
+          if(row.length >= 2) {
+            let x = parseFloat(row[0]), y = parseFloat(row[1]);
+            if(!isNaN(x) && !isNaN(y)) dataPoints.push({ x: x, y: y });
+          }
+        });
+        if(dataPoints.length === 0) { alert("No se encontraron datos válidos para el ajuste de parábola en el archivo."); return; }
+        computeParabola(dataPoints);
+      };
+      reader.readAsArrayBuffer(file);
+      return;
+    }
     const input = document.getElementById("parabolaInput").value.trim();
-    if (!input) {
+    if(!input) {
       alert("Por favor, ingresa datos en el formato: x,y; x,y; ...");
       return;
     }
     const dataPoints = parseData(input);
-    if (!dataPoints) return;
+    if(!dataPoints) return;
+    computeParabola(dataPoints);
+  };
+
+  function computeParabola(dataPoints) {
     const n = dataPoints.length;
     let sumX = 0, sumX2 = 0, sumX3 = 0, sumX4 = 0;
     let sumY = 0, sumXY = 0, sumX2Y = 0;
@@ -614,12 +740,12 @@ document.addEventListener("DOMContentLoaded", function() {
     const steps = 100;
     const plotX = [];
     const plotY = [];
-    for (let i = 0; i <= steps; i++) {
+    for(let i = 0; i <= steps; i++) {
       const x = minX + (maxX - minX) * i / steps;
       plotX.push(x);
       plotY.push(a * x * x + b * x + c);
     }
-    if (window.dataChartInstance) { window.dataChartInstance.destroy(); }
+    if(window.dataChartInstance) { window.dataChartInstance.destroy(); }
     window.dataChartInstance = new Chart(ctx, {
       type: "scatter",
       data: {
@@ -650,15 +776,14 @@ document.addEventListener("DOMContentLoaded", function() {
         }
       }
     });
-  };
+  }
 
   /**********************
    * Sección: Ajuste de Plano (3D)
    **********************/
-  // Toggle entre ingreso manual y archivo para datos del plano
   window.togglePlaneDataInput = function() {
     const method = document.getElementById("planeDataInputMethod").value;
-    if (method === "manual") {
+    if(method === "manual") {
       document.getElementById("planeManualContainer").style.display = "block";
       document.getElementById("planeFileContainer").style.display = "none";
     } else {
@@ -667,7 +792,6 @@ document.addEventListener("DOMContentLoaded", function() {
     }
   };
 
-  // Función para agregar una fila a la tabla de ingreso manual
   window.addPlaneRow = function() {
     const tableBody = document.querySelector("#planeDataTable tbody");
     const row = document.createElement("tr");
@@ -680,33 +804,32 @@ document.addEventListener("DOMContentLoaded", function() {
     tableBody.appendChild(row);
   };
 
-  // Función para eliminar una fila de la tabla de ingreso manual
   window.removePlaneRow = function(button) {
     const row = button.parentNode.parentNode;
     row.parentNode.removeChild(row);
   };
 
-  // Procesa los datos y ajusta el plano (usando Plotly para 3D)
   window.processPlane = function() {
     const method = document.getElementById("planeDataInputMethod").value;
     let dataPoints = [];
-    if (method === "manual") {
+    if(method === "manual") {
       const rows = document.querySelectorAll("#planeDataTable tbody tr");
       rows.forEach(row => {
         const x = parseFloat(row.querySelector(".plane-input-x").value);
         const y = parseFloat(row.querySelector(".plane-input-y").value);
         const z = parseFloat(row.querySelector(".plane-input-z").value);
-        if (!isNaN(x) && !isNaN(y) && !isNaN(z)) {
+        if(!isNaN(x) && !isNaN(y) && !isNaN(z)) {
           dataPoints.push({ x: x, y: y, z: z });
         }
       });
-      if (dataPoints.length === 0) {
+      if(dataPoints.length === 0) {
         alert("Por favor, ingresa datos válidos en la tabla.");
         return;
       }
-    } else { // Modo archivo
+      calculateAndRenderPlane(dataPoints);
+    } else {
       const fileInput = document.getElementById("planeFileUpload");
-      if (!fileInput.files.length) {
+      if(!fileInput.files.length) {
         alert("Por favor, selecciona un archivo Excel.");
         return;
       }
@@ -717,29 +840,27 @@ document.addEventListener("DOMContentLoaded", function() {
         const workbook = XLSX.read(data, { type: "array" });
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
         const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-        if (!jsonData.length || jsonData[0].length < 3) {
+        if(!jsonData.length || jsonData[0].length < 3) {
           alert("El archivo debe contener al menos tres columnas (X, Y, Z).");
           return;
         }
         dataPoints = jsonData.map(row => ({ x: parseFloat(row[0]), y: parseFloat(row[1]), z: parseFloat(row[2]) }))
                              .filter(pt => !isNaN(pt.x) && !isNaN(pt.y) && !isNaN(pt.z));
-        if (dataPoints.length === 0) {
+        if(dataPoints.length === 0) {
           alert("No se encontraron datos válidos en el archivo.");
           return;
         }
         calculateAndRenderPlane(dataPoints);
       };
       reader.readAsArrayBuffer(file);
-      return;
     }
-    calculateAndRenderPlane(dataPoints);
   };
 
   function calculateAndRenderPlane(dataPoints) {
     const n = dataPoints.length;
     let sumX = 0, sumY = 0, sumZ = 0, sumXX = 0, sumYY = 0, sumXY = 0, sumXZ = 0, sumYZ = 0;
     dataPoints.forEach(pt => {
-      const {x, y, z} = pt;
+      const { x, y, z } = pt;
       sumX += x;
       sumY += y;
       sumZ += z;
@@ -767,7 +888,6 @@ document.addEventListener("DOMContentLoaded", function() {
     const c = coeffs.get([2,0]);
     const resultElem = document.getElementById("planeResult");
     resultElem.innerHTML = `<p>Ecuación del plano: z = ${a.toFixed(2)}x + ${b.toFixed(2)}y + ${c.toFixed(2)}</p>`;
-    // Preparar datos para el gráfico 3D con Plotly
     const xVals = dataPoints.map(pt => pt.x);
     const yVals = dataPoints.map(pt => pt.y);
     const zVals = dataPoints.map(pt => pt.z);
@@ -782,14 +902,14 @@ document.addEventListener("DOMContentLoaded", function() {
     const gridSize = 20;
     const xGrid = [];
     const yGrid = [];
-    for (let i = 0; i < gridSize; i++) {
+    for(let i = 0; i < gridSize; i++) {
       xGrid.push(xRange[0] + (xRange[1]-xRange[0]) * i/(gridSize-1));
       yGrid.push(yRange[0] + (yRange[1]-yRange[0]) * i/(gridSize-1));
     }
     const zGrid = [];
-    for (let i = 0; i < gridSize; i++) {
+    for(let i = 0; i < gridSize; i++) {
       let row = [];
-      for (let j = 0; j < gridSize; j++) {
+      for(let j = 0; j < gridSize; j++) {
         row.push(a * xGrid[j] + b * yGrid[i] + c);
       }
       zGrid.push(row);
@@ -799,7 +919,6 @@ document.addEventListener("DOMContentLoaded", function() {
       type: 'surface', opacity: 0.5,
       colorscale: 'Viridis', name: 'Plano Ajustado'
     };
-    // Limpiar gráfico previo (si existe)
     Plotly.purge('planeChart');
     const layout = {
       title: 'Ajuste de Plano (3D)',
@@ -810,116 +929,29 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 
   /**********************
-   * Sección: Álgebra (Matrices)
+   * Toggles para secciones adicionales
    **********************/
-  function parseMatrix(text) {
-    return text.split("\n").map(row =>
-      row.split(",").map(val => parseFloat(val.trim())).filter(val => !isNaN(val))
-    );
-  }
-
-  function matrixToHTML(matrix) {
-    let html = '<table class="matrix-table">';
-    matrix.forEach(row => {
-      html += '<tr>';
-      row.forEach(val => { html += `<td>${val}</td>`; });
-      html += '</tr>';
-    });
-    html += '</table>';
-    return html;
-  }
-
-  window.addMatrices = function() {
-    const matrixA = parseMatrix(document.getElementById("matrixA").value);
-    const matrixB = parseMatrix(document.getElementById("matrixB").value);
-    try {
-      const result = math.add(matrixA, matrixB);
-      document.getElementById("algebraResult1").innerHTML = `<p><strong>A + B =</strong></p>${matrixToHTML(result)}`;
-    } catch (error) {
-      document.getElementById("algebraResult1").innerHTML = `<span class="error">Error al sumar matrices: ${error}</span>`;
+  window.toggleStatsInput = function() {
+    const method = document.getElementById("statsInputMethod").value;
+    if(method === "manual") {
+      document.getElementById("statsManualContainer").style.display = "block";
+      document.getElementById("statsFileContainer").style.display = "none";
+    } else {
+      document.getElementById("statsManualContainer").style.display = "none";
+      document.getElementById("statsFileContainer").style.display = "block";
     }
   };
 
-  window.multiplyMatrices = function() {
-    const matrixA = parseMatrix(document.getElementById("matrixA").value);
-    const matrixB = parseMatrix(document.getElementById("matrixB").value);
-    try {
-      const result = math.multiply(matrixA, matrixB);
-      document.getElementById("algebraResult1").innerHTML = `<p><strong>A × B =</strong></p>${matrixToHTML(result)}`;
-    } catch (error) {
-      document.getElementById("algebraResult1").innerHTML = `<span class="error">Error al multiplicar matrices: ${error}</span>`;
+  window.toggleParabolaInput = function() {
+    const method = document.getElementById("parabolaInputMethod").value;
+    if(method === "manual") {
+      document.getElementById("parabolaManualContainer").style.display = "block";
+      document.getElementById("parabolaFileContainer").style.display = "none";
+    } else {
+      document.getElementById("parabolaManualContainer").style.display = "none";
+      document.getElementById("parabolaFileContainer").style.display = "block";
     }
   };
-
-  window.transposeMatrix = function() {
-    const matrix = parseMatrix(document.getElementById("matrixSingle").value);
-    try {
-      const result = math.transpose(matrix);
-      document.getElementById("algebraResult2").innerHTML = `<p><strong>Transpuesta =</strong></p>${matrixToHTML(result)}`;
-    } catch (error) {
-      document.getElementById("algebraResult2").innerHTML = `<span class="error">Error al transponer la matriz: ${error}</span>`;
-    }
-  };
-
-  window.invertMatrix = function() {
-    const matrix = parseMatrix(document.getElementById("matrixSingle").value);
-    try {
-      const result = math.inv(matrix);
-      document.getElementById("algebraResult2").innerHTML = `<p><strong>Inversa =</strong></p>${matrixToHTML(result)}`;
-    } catch (error) {
-      document.getElementById("algebraResult2").innerHTML = `<span class="error">Error al invertir la matriz: ${error}</span>`;
-    }
-  };
-
-  /**********************
-   * Sección: Análisis Estadístico (solo texto)
-   **********************/
-  window.calculateStatsOnly = function() {
-    const input = document.getElementById("analysisInput").value;
-    const resultElem = document.getElementById("analysisResult");
-    if (!input) {
-      resultElem.innerHTML = `<span class="error">Por favor, ingresa datos.</span>`;
-      return;
-    }
-    let data = input.split(",").map(num => Number(num.trim())).filter(num => !isNaN(num));
-    if (data.length === 0) {
-      resultElem.innerHTML = `<span class="error">Por favor, ingresa datos numéricos válidos.</span>`;
-      return;
-    }
-    data.sort((a, b) => a - b);
-    const n = data.length;
-    const mean = data.reduce((sum, val) => sum + val, 0) / n;
-    const median = (n % 2 === 0) ? (data[n/2 - 1] + data[n/2]) / 2 : data[Math.floor(n/2)];
-    const freq = {};
-    data.forEach(x => { freq[x] = (freq[x] || 0) + 1; });
-    let mode = Object.keys(freq).filter(x => freq[x] === Math.max(...Object.values(freq)));
-    mode = (mode.length === n) ? "No hay moda" : mode.join(", ");
-    const variance = data.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / n;
-    const stddev = Math.sqrt(variance);
-    const skewness = data.reduce((sum, val) => sum + Math.pow(val - mean, 3), 0) / (n * Math.pow(stddev, 3));
-    const kurtosis = (data.reduce((sum, val) => sum + Math.pow(val - mean, 4), 0) / (n * Math.pow(stddev, 4))) - 3;
-    const Q1 = (n % 2 === 0) ? medianOf(data.slice(0, n/2)) : medianOf(data.slice(0, Math.floor(n/2)));
-    const Q3 = (n % 2 === 0) ? medianOf(data.slice(n/2)) : medianOf(data.slice(Math.ceil(n/2)));
-    const IQR = Q3 - Q1;
-    resultElem.innerHTML = `
-      <strong>Media:</strong> ${mean.toFixed(2)}<br>
-      <strong>Mediana:</strong> ${median}<br>
-      <strong>Moda:</strong> ${mode}<br>
-      <strong>Desviación Estándar:</strong> ${stddev.toFixed(2)}<br>
-      <strong>Sesgo:</strong> ${skewness.toFixed(2)}<br>
-      <strong>Curtosis:</strong> ${kurtosis.toFixed(2)}<br>
-      <strong>Cuartiles:</strong> Q1 = ${Q1}, Mediana = ${median}, Q3 = ${Q3}<br>
-      <strong>IQR:</strong> ${IQR.toFixed(2)}
-    `;
-  };
-
-  function medianOf(arr) {
-    const len = arr.length;
-    if (len === 0) return 0;
-    return (len % 2 === 0)
-      ? (arr[len/2 - 1] + arr[len/2]) / 2
-      : arr[Math.floor(len/2)];
-  }
 
   /**********************
    * Función para cerrar la ayuda y volver al hero
