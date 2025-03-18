@@ -219,6 +219,18 @@ input[type="file"] {
   color: #000;
 }
 
+/* Estilo para la tabla de ingreso manual de datos (Plano 3D) */
+#planeDataTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 10px;
+}
+#planeDataTable th, #planeDataTable td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+}
+
 /* Footer del equipo */
 .team-footer {
   position: fixed; bottom: 10px; left: 10px;
@@ -236,4 +248,42 @@ input[type="file"] {
   .hero-buttons { flex-direction: column; }
   .container { width: 100%; }
   select, input, textarea, button { font-size: 14px; }
+}
+
+/* ===============================
+   Botones en secciones de Ajuste de Parábola y Plano (3D)
+   Se muestran en azul claro
+   =============================== */
+#parabolaSection button,
+#planeSection button {
+  background: #ADD8E6; /* Azul claro */
+  border: none;
+  color: #000;
+  transition: background 0.3s;
+}
+
+#parabolaSection button:hover,
+#planeSection button:hover {
+  background: #87CEEB; /* Azul más intenso en hover */
+}
+
+/* ===============================
+   Botones "Volver al Inicio" en secciones de Ajuste de Parábola y Plano (3D)
+   Estilo azul en lugar de verde
+   =============================== */
+#parabolaSection .back-home-btn,
+#planeSection .back-home-btn {
+  border-color: #ADD8E6;
+}
+#parabolaSection .back-home-btn:before,
+#planeSection .back-home-btn:before {
+  background: #ADD8E6;
+}
+#parabolaSection .back-home-btn:hover,
+#planeSection .back-home-btn:hover {
+  border-color: #87CEEB;
+}
+#parabolaSection .back-home-btn:hover:before,
+#planeSection .back-home-btn:hover:before {
+  background: #87CEEB;
 }
