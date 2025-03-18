@@ -114,23 +114,34 @@
 
     <hr class="separator">
 
-    <!-- Sección: Ingresar Datos (Gráficas) -->
+    <!-- Sección: Ingresar Datos -->
     <section class="container" id="dataSection" style="display: none;">
       <h2>Ingresar Datos</h2>
-      <p>Elige el tipo de gráfica y escribe tus datos para visualizar.</p>
+      <p>Elige el método de ingreso y el tipo de gráfica:</p>
+      <label for="dataInputMethodData">Método de ingreso:</label>
+      <select id="dataInputMethodData" onchange="toggleDataInputData()">
+        <option value="manual" selected>Ingresar manualmente</option>
+        <option value="file">Subir archivo Excel</option>
+      </select>
       <label for="dataGraphType">Tipo de gráfica:</label>
       <select id="dataGraphType" onchange="handleDataGraphTypeChange()">
         <option value="histogram" selected>Histograma</option>
         <option value="boxplot">Boxplot</option>
         <option value="scatter">Gráfico XY</option>
       </select>
-      <div id="numericDataContainer">
-        <label for="customDataInput">Datos (números separados por comas):</label>
-        <textarea id="customDataInput" placeholder="Ej: 5, 10, 15, 20, 25"></textarea>
+      <div id="dataManualContainer">
+        <div id="numericDataContainer">
+          <label for="customDataInput">Datos (números separados por comas):</label>
+          <textarea id="customDataInput" placeholder="Ej: 5, 10, 15, 20, 25"></textarea>
+        </div>
+        <div id="xyDataContainer" style="display: none;">
+          <label for="xyDataInput">Datos XY (formato: x,y; x,y; ...):</label>
+          <textarea id="xyDataInput" placeholder="Ej: 10,20; 30,40; 50,60"></textarea>
+        </div>
       </div>
-      <div id="xyDataContainer" style="display: none;">
-        <label for="xyDataInput">Datos XY (formato: x,y; x,y; ...):</label>
-        <textarea id="xyDataInput" placeholder="Ej: 10,20; 30,40; 50,60"></textarea>
+      <div id="dataFileContainer" style="display: none;">
+        <label for="dataFileUpload">Subir archivo Excel (.xlsx):</label>
+        <input type="file" id="dataFileUpload" accept=".xlsx" />
       </div>
       <button onclick="processData()">Procesar Datos</button>
       <div id="customDataResult"></div>
@@ -145,8 +156,19 @@
     <!-- Sección: Análisis Estadístico -->
     <section class="container" id="analysisSection" style="display: none;">
       <h2>Análisis Estadístico</h2>
-      <p>Ingresa datos numéricos separados por comas para calcular las medidas estadísticas extendidas.</p>
-      <textarea id="analysisInput" placeholder="Ej: 1,2,3,4,5,5,3"></textarea>
+      <label for="statsInputMethod">Método de ingreso:</label>
+      <select id="statsInputMethod" onchange="toggleStatsInput()">
+        <option value="manual" selected>Ingresar manualmente</option>
+        <option value="file">Subir archivo Excel</option>
+      </select>
+      <div id="statsManualContainer">
+        <label for="analysisInput">Datos (números separados por comas):</label>
+        <textarea id="analysisInput" placeholder="Ej: 1,2,3,4,5,5,3"></textarea>
+      </div>
+      <div id="statsFileContainer" style="display: none;">
+        <label for="statsFileUpload">Subir archivo Excel (.xlsx):</label>
+        <input type="file" id="statsFileUpload" accept=".xlsx" />
+      </div>
       <button onclick="calculateStatsOnly()">Calcular Estadísticas Extendidas</button>
       <div id="analysisResult"></div>
       <button class="back-home-btn" onclick="returnHome()"><span>🔙 Volver al Inicio</span></button>
@@ -154,7 +176,7 @@
 
     <hr class="separator">
 
-    <!-- Sección: Regresión (Mínimos Cuadrados) -->
+    <!-- Sección: Regresión Lineal -->
     <section class="container" id="regressionSection" style="display: none;">
       <h2>Regresión por Mínimos Cuadrados</h2>
       <p>Elige cómo ingresar los datos:</p>
@@ -186,8 +208,19 @@
     <!-- Sección: Ajuste de Parábola -->
     <section class="container" id="parabolaSection" style="display: none;">
       <h2>Ajuste de Parábola</h2>
-      <p>Ingresa tus datos en el formato "x,y; x,y; ..." para ajustar la parábola: y = ax² + bx + c.</p>
-      <textarea id="parabolaInput" placeholder="Ej: 1,1; 7,2; 1.5,3; 2,2; 2.5,4; 4,5; 5,4; 6,1; 6,3; 6,4"></textarea>
+      <label for="parabolaInputMethod">Método de ingreso:</label>
+      <select id="parabolaInputMethod" onchange="toggleParabolaInput()">
+        <option value="manual" selected>Ingresar manualmente</option>
+        <option value="file">Subir archivo Excel</option>
+      </select>
+      <div id="parabolaManualContainer">
+        <label for="parabolaInput">Datos (formato "x,y; x,y; ..."):</label>
+        <textarea id="parabolaInput" placeholder="Ej: 1,1; 7,2; 1.5,3; 2,2; 2.5,4; 4,5; 5,4; 6,1; 6,3; 6,4"></textarea>
+      </div>
+      <div id="parabolaFileContainer" style="display: none;">
+        <label for="parabolaFileUpload">Subir archivo Excel (.xlsx):</label>
+        <input type="file" id="parabolaFileUpload" accept=".xlsx" />
+      </div>
       <button onclick="processParabola()">Procesar Parábola</button>
       <div id="parabolaResult"></div>
       <div class="chart-container">
