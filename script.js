@@ -36,7 +36,7 @@ document.addEventListener("DOMContentLoaded", function() {
   };
 
   /**********************
-   * Llenar el <select> de ciudades
+   * Llenar el <select> de ciudades y seleccionar por defecto "CDMX"
    **********************/
   const citySelect = document.getElementById("citySelect");
   Object.keys(cities).forEach(city => {
@@ -45,6 +45,7 @@ document.addEventListener("DOMContentLoaded", function() {
     option.textContent = city;
     citySelect.appendChild(option);
   });
+  citySelect.value = "CDMX";
 
   /**********************
    * Función para mostrar secciones y actualizar el fondo
@@ -62,6 +63,8 @@ document.addEventListener("DOMContentLoaded", function() {
       document.body.style.backgroundImage = "url('Panelsolar.png')";
     } else if (sectionId === "dataSection" || sectionId === "analysisSection") {
       document.body.style.backgroundImage = "url('Estadistica.png')";
+    } else if (sectionId === "parabolaSection" || sectionId === "planeSection") {
+      document.body.style.backgroundImage = "url('graficas.png')";
     } else {
       document.body.style.backgroundImage = "url('solar_image.png')";
     }
@@ -169,8 +172,7 @@ document.addEventListener("DOMContentLoaded", function() {
     updateMap(lat, lon);
     const radiation = await getSolarRadiation(lat, lon);
     if (!radiation) {
-      result.textContent = "No se pudo obtener la radiación solar.";
-      result.classList.add("error");
+      result.innerHTML = `<span class="error">No se pudo obtener la radiación solar. Inténtalo más tarde.</span>`;
       return;
     }
     const dailyEnergy = radiation * area * efficiency;
@@ -530,6 +532,7 @@ document.addEventListener("DOMContentLoaded", function() {
       { x: minX, y: m * minX + b },
       { x: maxX, y: m * maxX + b }
     ];
+    if (window.dataChartInstance) { window.dataChartInstance.destroy(); }
     window.dataChartInstance = new Chart(ctx, {
       type: "scatter",
       data: {
@@ -616,6 +619,7 @@ document.addEventListener("DOMContentLoaded", function() {
       plotX.push(x);
       plotY.push(a * x * x + b * x + c);
     }
+    if (window.dataChartInstance) { window.dataChartInstance.destroy(); }
     window.dataChartInstance = new Chart(ctx, {
       type: "scatter",
       data: {
@@ -651,20 +655,87 @@ document.addEventListener("DOMContentLoaded", function() {
   /**********************
    * Sección: Ajuste de Plano (3D)
    **********************/
+  // Toggle entre ingreso manual y archivo para datos del plano
+  window.togglePlaneDataInput = function() {
+    const method = document.getElementById("planeDataInputMethod").value;
+    if (method === "manual") {
+      document.getElementById("planeManualContainer").style.display = "block";
+      document.getElementById("planeFileContainer").style.display = "none";
+    } else {
+      document.getElementById("planeManualContainer").style.display = "none";
+      document.getElementById("planeFileContainer").style.display = "block";
+    }
+  };
+
+  // Función para agregar una fila a la tabla de ingreso manual
+  window.addPlaneRow = function() {
+    const tableBody = document.querySelector("#planeDataTable tbody");
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td><input type="number" step="any" class="plane-input-x"></td>
+      <td><input type="number" step="any" class="plane-input-y"></td>
+      <td><input type="number" step="any" class="plane-input-z"></td>
+      <td><button type="button" onclick="removePlaneRow(this)">Eliminar</button></td>
+    `;
+    tableBody.appendChild(row);
+  };
+
+  // Función para eliminar una fila de la tabla de ingreso manual
+  window.removePlaneRow = function(button) {
+    const row = button.parentNode.parentNode;
+    row.parentNode.removeChild(row);
+  };
+
+  // Procesa los datos y ajusta el plano (usando Plotly para 3D)
   window.processPlane = function() {
-    const input = document.getElementById("planeInput").value.trim();
-    if (!input) {
-      alert("Por favor, ingresa datos en el formato: x,y,z; x,y,z; ...");
+    const method = document.getElementById("planeDataInputMethod").value;
+    let dataPoints = [];
+    if (method === "manual") {
+      const rows = document.querySelectorAll("#planeDataTable tbody tr");
+      rows.forEach(row => {
+        const x = parseFloat(row.querySelector(".plane-input-x").value);
+        const y = parseFloat(row.querySelector(".plane-input-y").value);
+        const z = parseFloat(row.querySelector(".plane-input-z").value);
+        if (!isNaN(x) && !isNaN(y) && !isNaN(z)) {
+          dataPoints.push({ x: x, y: y, z: z });
+        }
+      });
+      if (dataPoints.length === 0) {
+        alert("Por favor, ingresa datos válidos en la tabla.");
+        return;
+      }
+    } else { // Modo archivo
+      const fileInput = document.getElementById("planeFileUpload");
+      if (!fileInput.files.length) {
+        alert("Por favor, selecciona un archivo Excel.");
+        return;
+      }
+      const file = fileInput.files[0];
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+        if (!jsonData.length || jsonData[0].length < 3) {
+          alert("El archivo debe contener al menos tres columnas (X, Y, Z).");
+          return;
+        }
+        dataPoints = jsonData.map(row => ({ x: parseFloat(row[0]), y: parseFloat(row[1]), z: parseFloat(row[2]) }))
+                             .filter(pt => !isNaN(pt.x) && !isNaN(pt.y) && !isNaN(pt.z));
+        if (dataPoints.length === 0) {
+          alert("No se encontraron datos válidos en el archivo.");
+          return;
+        }
+        calculateAndRenderPlane(dataPoints);
+      };
+      reader.readAsArrayBuffer(file);
       return;
     }
-    const dataPoints = input.split(";").map(pair => pair.trim()).filter(pair => pair !== "").map(pair => {
-      const nums = pair.split(",").map(n => Number(n.trim()));
-      return { x: nums[0], y: nums[1], z: nums[2] };
-    });
-    if (dataPoints.some(pt => isNaN(pt.x) || isNaN(pt.y) || isNaN(pt.z))) {
-      alert("Datos no válidos. Usa el formato: x,y,z; x,y,z; ...");
-      return;
-    }
+    calculateAndRenderPlane(dataPoints);
+  };
+
+  function calculateAndRenderPlane(dataPoints) {
     const n = dataPoints.length;
     let sumX = 0, sumY = 0, sumZ = 0, sumXX = 0, sumYY = 0, sumXY = 0, sumXZ = 0, sumYZ = 0;
     dataPoints.forEach(pt => {
@@ -696,6 +767,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const c = coeffs.get([2,0]);
     const resultElem = document.getElementById("planeResult");
     resultElem.innerHTML = `<p>Ecuación del plano: z = ${a.toFixed(2)}x + ${b.toFixed(2)}y + ${c.toFixed(2)}</p>`;
+    // Preparar datos para el gráfico 3D con Plotly
     const xVals = dataPoints.map(pt => pt.x);
     const yVals = dataPoints.map(pt => pt.y);
     const zVals = dataPoints.map(pt => pt.z);
@@ -727,13 +799,15 @@ document.addEventListener("DOMContentLoaded", function() {
       type: 'surface', opacity: 0.5,
       colorscale: 'Viridis', name: 'Plano Ajustado'
     };
+    // Limpiar gráfico previo (si existe)
+    Plotly.purge('planeChart');
     const layout = {
       title: 'Ajuste de Plano (3D)',
       autosize: true,
       scene: { xaxis: { title: 'X' }, yaxis: { title: 'Y' }, zaxis: { title: 'Z' } }
     };
     Plotly.newPlot('planeChart', [tracePoints, traceSurface], layout);
-  };
+  }
 
   /**********************
    * Sección: Álgebra (Matrices)
@@ -858,7 +932,7 @@ document.addEventListener("DOMContentLoaded", function() {
   };
 
   /**********************
-   * Función para volver al inicio (Hero)
+   * Función para volver al inicio (Hero) y restablecer fondo
    **********************/
   window.returnHome = function() {
     const sections = ["solarSection", "panelSection", "dataSection", "analysisSection", "regressionSection", "parabolaSection", "planeSection", "algebraSection", "helpSection"];
