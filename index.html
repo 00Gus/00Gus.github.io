@@ -201,8 +201,42 @@
     <!-- Sección: Ajuste de Plano (3D) -->
     <section class="container" id="planeSection" style="display: none;">
       <h2>Ajuste de Plano (3D)</h2>
-      <p>Ingresa tus datos en el formato "x,y,z; x,y,z; ..." para ajustar un plano (z = ax + by + c).</p>
-      <textarea id="planeInput" placeholder="Ej: 1,2,3; 2,3,5; 3,4,7; 4,5,9"></textarea>
+      <p>Selecciona el método de ingreso de datos:</p>
+      <select id="planeDataInputMethod" onchange="togglePlaneDataInput()">
+        <option value="manual" selected>Ingreso Manual</option>
+        <option value="file">Cargar Archivo Excel</option>
+      </select>
+      
+      <!-- Contenedor de ingreso manual (tabla) -->
+      <div id="planeManualContainer">
+        <p>Ingresa tus datos en la tabla:</p>
+        <table id="planeDataTable">
+          <thead>
+            <tr>
+              <th>x</th>
+              <th>y</th>
+              <th>z</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><input type="number" step="any" class="plane-input-x"></td>
+              <td><input type="number" step="any" class="plane-input-y"></td>
+              <td><input type="number" step="any" class="plane-input-z"></td>
+              <td><button type="button" onclick="removePlaneRow(this)">Eliminar</button></td>
+            </tr>
+          </tbody>
+        </table>
+        <button type="button" onclick="addPlaneRow()">Agregar fila</button>
+      </div>
+
+      <!-- Contenedor de carga de archivo -->
+      <div id="planeFileContainer" style="display: none;">
+        <label for="planeFileUpload">Subir archivo Excel (.xlsx):</label>
+        <input type="file" id="planeFileUpload" accept=".xlsx" />
+      </div>
+
       <button onclick="processPlane()">Procesar Plano</button>
       <div id="planeResult"></div>
       <div id="planeChart" class="chart-container" style="height:400px;"></div>
