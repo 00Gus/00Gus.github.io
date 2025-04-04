@@ -1,6 +1,11 @@
 document.addEventListener("DOMContentLoaded", function() {
 
   /**********************
+   * Variables Globales
+   **********************/
+  let currentDailyEnergy = 0; // Energía diaria calculada en la Calculadora Solar
+  
+  /**********************
    * Diccionario de 30 ciudades con coordenadas
    **********************/
   const cities = {
@@ -36,7 +41,7 @@ document.addEventListener("DOMContentLoaded", function() {
   };
 
   /**********************
-   * Llenar el <select> de ciudades y seleccionar por defecto "CDMX"
+   * Poblar el <select> de ciudades para la Calculadora Solar y Consumo
    **********************/
   const citySelect = document.getElementById("citySelect");
   Object.keys(cities).forEach(city => {
@@ -47,34 +52,160 @@ document.addEventListener("DOMContentLoaded", function() {
   });
   citySelect.value = "CDMX";
 
+  const consumoCitySelect = document.getElementById("consumoCitySelect");
+  if (consumoCitySelect) {
+    Object.keys(cities).forEach(city => {
+      const option = document.createElement("option");
+      option.value = city;
+      option.textContent = city;
+      consumoCitySelect.appendChild(option);
+    });
+    consumoCitySelect.value = "CDMX";
+  }
+
   /**********************
-   * Función para mostrar secciones y actualizar el fondo
+   * Diccionario de consumo mensual estimado por ciudad (en GWh)
+   **********************/
+  const cityConsumption = {
+    "CDMX": 22000,
+    "Guadalajara": 13500,
+    "Monterrey": 17000,
+    "Morelia": 6200,
+    "Cancún": 6300,
+    "Tijuana": 12000,
+    "Puebla": 8700,
+    "Chihuahua": 14000,
+    "León": 9500,
+    "Toluca": 18000,
+    "Querétaro": 5600,
+    "Aguascalientes": 3500,
+    "San Luis Potosí": 7200,
+    "Culiacán": 8000,
+    "Hermosillo": 10500,
+    "Veracruz": 11000,
+    "Saltillo": 15500,
+    "Tampico": 12500,
+    "Villahermosa": 5500,
+    "Oaxaca": 4400,
+    "Tuxtla Gutiérrez": 5000,
+    "Chetumal": 6300,
+    "Campeche": 4200,
+    "La Paz": 2800,
+    "Mazatlán": 8000,
+    "Irapuato": 9500,
+    "Mexicali": 12000,
+    "Colima": 1900,
+    "Cuernavaca": 3100
+  };
+
+  /**********************
+   * Variables globales para la sección Consumo
+   **********************/
+  let consumptionHistory = []; // Historial de selecciones {label, value}
+  let consumptionChart = null; // Gráfico de línea
+
+  /**********************
+   * Función para crear la gráfica de línea de consumo
+   **********************/
+  function createConsumptionChart() {
+    const ctx = document.getElementById("consumptionChart").getContext("2d");
+    consumptionChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [{
+          label: 'Consumo Estimado (GWh)',
+          data: [],
+          fill: false,
+          borderColor: '#3498db',
+          tension: 0.1,
+          pointRadius: 5,
+          pointBackgroundColor: '#3498db'
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          x: {
+            title: { display: true, text: 'Selecciones del Usuario' }
+          },
+          y: {
+            title: { display: true, text: 'GWh' },
+            beginAtZero: true
+          }
+        }
+      }
+    });
+  }
+
+  /**********************
+   * Función para actualizar la gráfica de consumo
+   **********************/
+  function updateConsumptionChart() {
+    if (!consumptionChart) {
+      createConsumptionChart();
+    }
+    const labels = consumptionHistory.map(item => item.label);
+    const data = consumptionHistory.map(item => item.value);
+    consumptionChart.data.labels = labels;
+    consumptionChart.data.datasets[0].data = data;
+    consumptionChart.update();
+  }
+
+  /**********************
+   * Al cambiar la ciudad en Consumo se reinicia el historial y se destruye el gráfico anterior
+   **********************/
+  if (consumoCitySelect) {
+    consumoCitySelect.addEventListener("change", function() {
+      consumptionHistory = [];
+      if (consumptionChart) {
+        consumptionChart.destroy();
+        consumptionChart = null;
+      }
+    });
+  }
+
+  /**********************
+   * Función para mostrar secciones y corregir el encuadre al volver al inicio
    **********************/
   window.showSection = function(sectionId) {
-    const sections = ["solarSection", "panelSection", "dataSection", "analysisSection", "regressionSection", "parabolaSection", "planeSection", "algebraSection", "helpSection"];
+    const sections = ["solarSection", "panelSection", "dataSection", "analysisSection", "regressionSection", "parabolaSection", "planeSection", "algebraSection", "helpSection", "consumoSection"];
     sections.forEach(id => {
       document.getElementById(id).style.display = (id === sectionId) ? "block" : "none";
     });
     const hero = document.getElementById("heroSection");
     if (hero) { hero.style.display = "none"; }
-    // Actualizar fondo según la sección
-    if (sectionId === "solarSection") {
-      document.body.style.backgroundImage = "url('calculadora.png')";
-    } else if (sectionId === "panelSection") {
-      document.body.style.backgroundImage = "url('Panelsolar.png')";
-    } else if (sectionId === "dataSection" || sectionId === "analysisSection") {
-      document.body.style.backgroundImage = "url('Estadistica.png')";
-    } else if (sectionId === "regressionSection") {
-      document.body.style.backgroundImage = "url('Regresion.png')";
-    } else if (sectionId === "parabolaSection" || sectionId === "planeSection") {
-      document.body.style.backgroundImage = "url('graficas.png')";
-    } else if (sectionId === "algebraSection") {
-      document.body.style.backgroundImage = "url('matrices.png')";
-    } else {
-      document.body.style.backgroundImage = "url('solar_image.png')";
+    let bgImage = 'solar_image.png';
+    switch(sectionId) {
+      case "solarSection":
+        bgImage = 'calculadora.png';
+        break;
+      case "panelSection":
+        bgImage = 'Panelsolar.png';
+        break;
+      case "dataSection":
+      case "analysisSection":
+        bgImage = 'Estadistica.png';
+        break;
+      case "regressionSection":
+        bgImage = 'Regresion.png';
+        break;
+      case "parabolaSection":
+      case "planeSection":
+        bgImage = 'graficas.png';
+        break;
+      case "algebraSection":
+        bgImage = 'matrices.png';
+        break;
+      case "consumoSection":
+        bgImage = 'consumo.png';
+        break;
     }
+    document.body.style.backgroundImage = "url('" + bgImage + "')";
     document.body.style.backgroundSize = "cover";
     document.body.style.backgroundPosition = "center center";
+    // Reinicia márgenes del contenedor para evitar desplazamientos
+    document.querySelector(".wrapper").style.margin = "0 auto";
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -113,7 +244,7 @@ document.addEventListener("DOMContentLoaded", function() {
   };
 
   /**********************
-   * Función para actualizar el mapa usando Leaflet
+   * Función para actualizar el mapa usando Leaflet y mostrar el pin
    **********************/
   let map = null;
   window.updateMap = function(lat, lon) {
@@ -121,18 +252,23 @@ document.addEventListener("DOMContentLoaded", function() {
     if (!mapContainer) return;
     mapContainer.style.display = "block";
     mapContainer.style.height = "300px";
+    mapContainer.style.width = "100%";
     if (map) {
       map.remove();
       map = null;
     }
-    requestAnimationFrame(() => {
+    // Usamos un retardo mayor para asegurar que el contenedor esté completamente visible
+    setTimeout(() => {
       map = L.map("map", { center: [lat, lon], zoom: 13 });
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: "&copy; OpenStreetMap contributors"
       }).addTo(map);
       L.marker([lat, lon]).addTo(map);
-      map.invalidateSize();
-    });
+      // Forzamos invalidateSize nuevamente
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 300);
+    }, 300);
   };
 
   /**********************
@@ -181,7 +317,8 @@ document.addEventListener("DOMContentLoaded", function() {
       return;
     }
     const dailyEnergy = radiation * area * efficiency;
-    monthlyEnergy = dailyEnergy * 30;
+    currentDailyEnergy = dailyEnergy;
+    const monthlyEnergy = dailyEnergy * 30;
     result.innerHTML = `
       Energía generada: ${dailyEnergy.toFixed(2)} kWh/día<br>
       Promedio mensual: ${monthlyEnergy.toFixed(2)} kWh/mes
@@ -208,17 +345,16 @@ document.addEventListener("DOMContentLoaded", function() {
       return;
     }
     savingsResult.classList.remove("error");
-    const costWithoutSolar = billAmount;
-    const generatedBimonthly = monthlyEnergy * 2;
+    const generatedBimonthly = currentDailyEnergy * 30 * 2;
     const effectiveConsumption = Math.max(consumption - generatedBimonthly, 0);
     const costWithSolar = effectiveConsumption * tariff;
-    const savings = costWithoutSolar - costWithSolar;
+    const savings = billAmount - costWithSolar;
     savingsResult.innerHTML = `
-      <strong>Costo sin paneles:</strong> $${costWithoutSolar.toFixed(2)} MXN (bimestral)<br>
+      <strong>Costo sin paneles:</strong> $${billAmount.toFixed(2)} MXN (bimestral)<br>
       <strong>Costo con paneles:</strong> $${costWithSolar.toFixed(2)} MXN (bimestral)<br>
       <strong>Ahorro estimado:</strong> $${savings.toFixed(2)} MXN (bimestral)
     `;
-    updateSavingsChart(costWithoutSolar, costWithSolar);
+    updateSavingsChart(billAmount, costWithSolar);
   };
 
   /**********************
@@ -269,7 +405,9 @@ document.addEventListener("DOMContentLoaded", function() {
     const descElem = document.getElementById("panelDescription");
     if (panels[selectedModel]) {
       descElem.textContent = panels[selectedModel].desc + " (Potencia aprox.: " + panels[selectedModel].watt + "W)";
-    } else { descElem.textContent = ""; }
+    } else {
+      descElem.textContent = "";
+    }
   };
 
   window.calculatePanels = function() {
@@ -826,7 +964,7 @@ document.addEventListener("DOMContentLoaded", function() {
         alert("Por favor, ingresa datos válidos en la tabla.");
         return;
       }
-      calculateAndRenderPlane(dataPoints);
+      plot3DPlane(dataPoints);
     } else {
       const fileInput = document.getElementById("planeFileUpload");
       if(!fileInput.files.length) {
@@ -850,131 +988,98 @@ document.addEventListener("DOMContentLoaded", function() {
           alert("No se encontraron datos válidos en el archivo.");
           return;
         }
-        calculateAndRenderPlane(dataPoints);
+        plot3DPlane(dataPoints);
       };
       reader.readAsArrayBuffer(file);
     }
   };
 
-  function calculateAndRenderPlane(dataPoints) {
-    const n = dataPoints.length;
-    let sumX = 0, sumY = 0, sumZ = 0, sumXX = 0, sumYY = 0, sumXY = 0, sumXZ = 0, sumYZ = 0;
-    dataPoints.forEach(pt => {
-      const { x, y, z } = pt;
-      sumX += x;
-      sumY += y;
-      sumZ += z;
-      sumXX += x * x;
-      sumYY += y * y;
-      sumXY += x * y;
-      sumXZ += x * z;
-      sumYZ += y * z;
-    });
-    const A = [
-      [sumXX, sumXY, sumX],
-      [sumXY, sumYY, sumY],
-      [sumX,  sumY,  n]
-    ];
-    const B = [sumXZ, sumYZ, sumZ];
-    let coeffs;
-    try {
-      coeffs = math.lusolve(math.matrix(A), math.matrix(B));
-    } catch (error) {
-      alert("Error en el ajuste del plano: " + error);
-      return;
-    }
-    const a = coeffs.get([0,0]);
-    const b = coeffs.get([1,0]);
-    const c = coeffs.get([2,0]);
-    const resultElem = document.getElementById("planeResult");
-    resultElem.innerHTML = `<p>Ecuación del plano: z = ${a.toFixed(2)}x + ${b.toFixed(2)}y + ${c.toFixed(2)}</p>`;
-    const xVals = dataPoints.map(pt => pt.x);
-    const yVals = dataPoints.map(pt => pt.y);
-    const zVals = dataPoints.map(pt => pt.z);
-    const tracePoints = {
-      x: xVals, y: yVals, z: zVals,
-      mode: 'markers', type: 'scatter3d',
-      marker: { size: 4, color: '#e74c3c' },
-      name: 'Datos'
+  // Función que grafica los puntos 3D usando Plotly
+  function plot3DPlane(dataPoints) {
+    const xs = dataPoints.map(pt => pt.x);
+    const ys = dataPoints.map(pt => pt.y);
+    const zs = dataPoints.map(pt => pt.z);
+    const trace = {
+      x: xs,
+      y: ys,
+      z: zs,
+      mode: 'markers',
+      marker: {
+        size: 5,
+        color: '#e74c3c'
+      },
+      type: 'scatter3d'
     };
-    const xRange = [Math.min(...xVals), Math.max(...xVals)];
-    const yRange = [Math.min(...yVals), Math.max(...yVals)];
-    const gridSize = 20;
-    const xGrid = [];
-    const yGrid = [];
-    for(let i = 0; i < gridSize; i++) {
-      xGrid.push(xRange[0] + (xRange[1]-xRange[0]) * i/(gridSize-1));
-      yGrid.push(yRange[0] + (yRange[1]-yRange[0]) * i/(gridSize-1));
-    }
-    const zGrid = [];
-    for(let i = 0; i < gridSize; i++) {
-      let row = [];
-      for(let j = 0; j < gridSize; j++) {
-        row.push(a * xGrid[j] + b * yGrid[i] + c);
-      }
-      zGrid.push(row);
-    }
-    const traceSurface = {
-      x: xGrid, y: yGrid, z: zGrid,
-      type: 'surface', opacity: 0.5,
-      colorscale: 'Viridis', name: 'Plano Ajustado'
-    };
-    Plotly.purge('planeChart');
+    const data = [trace];
     const layout = {
       title: 'Ajuste de Plano (3D)',
-      autosize: true,
-      scene: { xaxis: { title: 'X' }, yaxis: { title: 'Y' }, zaxis: { title: 'Z' } }
+      scene: {
+        xaxis: { title: 'X' },
+        yaxis: { title: 'Y' },
+        zaxis: { title: 'Z' }
+      },
+      margin: { l: 0, r: 0, b: 0, t: 50 }
     };
-    Plotly.newPlot('planeChart', [tracePoints, traceSurface], layout);
+    Plotly.newPlot('planeChart', data, layout);
   }
 
   /**********************
-   * Toggles para secciones adicionales
-   **********************/
-  window.toggleStatsInput = function() {
-    const method = document.getElementById("statsInputMethod").value;
-    if(method === "manual") {
-      document.getElementById("statsManualContainer").style.display = "block";
-      document.getElementById("statsFileContainer").style.display = "none";
-    } else {
-      document.getElementById("statsManualContainer").style.display = "none";
-      document.getElementById("statsFileContainer").style.display = "block";
-    }
-  };
-
-  window.toggleParabolaInput = function() {
-    const method = document.getElementById("parabolaInputMethod").value;
-    if(method === "manual") {
-      document.getElementById("parabolaManualContainer").style.display = "block";
-      document.getElementById("parabolaFileContainer").style.display = "none";
-    } else {
-      document.getElementById("parabolaManualContainer").style.display = "none";
-      document.getElementById("parabolaFileContainer").style.display = "block";
-    }
-  };
-
-  /**********************
-   * Función para cerrar la ayuda y volver al hero
-   **********************/
-  window.hideHelp = function() {
-    document.getElementById("helpSection").style.display = "none";
-    document.getElementById("heroSection").style.display = "flex";
-    document.body.style.backgroundImage = "url('solar_image.png')";
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  /**********************
-   * Función para volver al inicio (Hero) y restablecer fondo
+   * Función para volver al inicio y restablecer estilos
    **********************/
   window.returnHome = function() {
-    const sections = ["solarSection", "panelSection", "dataSection", "analysisSection", "regressionSection", "parabolaSection", "planeSection", "algebraSection", "helpSection"];
-    sections.forEach(id => { document.getElementById(id).style.display = "none"; });
-    const hero = document.getElementById("heroSection");
-    hero.style.display = "flex";
+    document.getElementById("heroSection").style.display = "block";
+    const sections = ["solarSection", "panelSection", "dataSection", "analysisSection", "regressionSection", "parabolaSection", "planeSection", "algebraSection", "helpSection", "consumoSection"];
+    sections.forEach(id => document.getElementById(id).style.display = "none");
     document.body.style.backgroundImage = "url('solar_image.png')";
-    document.body.style.backgroundSize = "cover";
-    document.body.style.backgroundPosition = "center center";
+    // Reiniciar estilos del contenedor del mapa
+    const mapContainer = document.getElementById("map");
+    if(mapContainer) {
+      mapContainer.style.display = "none";
+      mapContainer.style.height = "";
+      mapContainer.style.width = "";
+    }
+    // Reiniciar posibles márgenes alterados
+    document.querySelector(".wrapper").style.margin = "0 auto";
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  /**********************
+   * Función para Estimar Consumo (Sección Consumo)
+   **********************/
+  window.calculateConsumption = function() {
+    const city = document.getElementById("consumoCitySelect").value;
+    const timeRange = document.getElementById("timeRangeSelect").value;
+    const resultElem = document.getElementById("consumptionResult");
+    
+    if (!cityConsumption[city]) {
+      resultElem.textContent = "No se encontró consumo para la ciudad seleccionada.";
+      return;
+    }
+    
+    const monthlyConsumption = cityConsumption[city]; // Consumo mensual en GWh
+    const hourlyConsumption = monthlyConsumption / (30 * 24);
+    let estimatedConsumption = 0;
+    
+    if (timeRange.endsWith("d")) {
+      const days = parseInt(timeRange);
+      estimatedConsumption = hourlyConsumption * 24 * days;
+    } else if (timeRange.endsWith("w")) {
+      estimatedConsumption = hourlyConsumption * 24 * 7;
+    } else if (timeRange.endsWith("m")) {
+      estimatedConsumption = monthlyConsumption;
+    } else {
+      const hours = parseFloat(timeRange);
+      estimatedConsumption = hourlyConsumption * hours;
+    }
+    
+    resultElem.innerHTML = `
+      Consumo estimado para <strong>${city}</strong> durante el período seleccionado (${timeRange}): 
+      <strong>${estimatedConsumption.toFixed(2)} GWh</strong>
+    `;
+    
+    const label = `${city} - ${timeRange}`;
+    consumptionHistory.push({ label: label, value: estimatedConsumption });
+    updateConsumptionChart();
   };
 
 });
