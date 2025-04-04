@@ -186,12 +186,10 @@
         <option value="manual" selected>Ingresar manualmente</option>
         <option value="file">Subir archivo Excel</option>
       </select>
-      <!-- Entrada manual -->
       <div id="manualInputSection">
         <label for="regressionInput">Datos (formato "x,y; x,y; ..."):</label>
         <textarea id="regressionInput" placeholder="Ej: 1,2; 2,4; 3,5"></textarea>
       </div>
-      <!-- Carga de archivo -->
       <div id="fileInputSection" style="display: none;">
         <label for="fileUpload">Subir archivo Excel (.xlsx):</label>
         <input type="file" id="fileUpload" accept=".xlsx" />
@@ -240,8 +238,6 @@
         <option value="manual" selected>Ingreso Manual</option>
         <option value="file">Cargar Archivo Excel</option>
       </select>
-      
-      <!-- Contenedor de ingreso manual (tabla) -->
       <div id="planeManualContainer">
         <p>Ingresa tus datos en la tabla:</p>
         <table id="planeDataTable">
@@ -264,13 +260,10 @@
         </table>
         <button type="button" onclick="addPlaneRow()">Agregar fila</button>
       </div>
-
-      <!-- Contenedor de carga de archivo -->
       <div id="planeFileContainer" style="display: none;">
         <label for="planeFileUpload">Subir archivo Excel (.xlsx):</label>
         <input type="file" id="planeFileUpload" accept=".xlsx" />
       </div>
-
       <button onclick="processPlane()">Procesar Plano</button>
       <div id="planeResult"></div>
       <!-- Contenedor para la gráfica 3D con Plotly -->
@@ -403,7 +396,6 @@
       <button onclick="calculateConsumption()">Estimar Consumo</button>
       <p id="consumptionResult"></p>
 
-      <!-- Contenedor de la gráfica de línea -->
       <div class="chart-container">
         <canvas id="consumptionChart"></canvas>
       </div>
