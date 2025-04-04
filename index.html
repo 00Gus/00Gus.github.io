@@ -41,6 +41,7 @@
         <button onclick="showSection('planeSection')">Ajuste de Plano (3D)</button>
         <button onclick="showSection('algebraSection')">Álgebra (Matrices)</button>
         <button onclick="showSection('helpSection')">Ayuda</button>
+        <button onclick="showSection('consumoSection')">Consumo</button>
       </div>
     </div>
   </header>
@@ -76,7 +77,7 @@
       <div id="map"></div>
       <hr class="separator2">
       <h3>Calcula tu Consumo y Ahorro</h3>
-      <p>En México los recibos de luz se emiten cada dos meses. Ingresa tu consumo bimestral (kWh), el monto del recibo (MXN) y la tarifa eléctrica ($/kWh).</p>
+      <p>Ingresa tu consumo bimestral (kWh), el monto del recibo (MXN) y la tarifa eléctrica ($/kWh).</p>
       <label for="bimonthlyConsumption">Consumo bimestral (kWh):</label>
       <input type="number" id="bimonthlyConsumption" placeholder="Ej: 600" min="1">
       <label for="bimonthlyCost">Monto del recibo bimestral (MXN):</label>
@@ -272,6 +273,7 @@
 
       <button onclick="processPlane()">Procesar Plano</button>
       <div id="planeResult"></div>
+      <!-- Contenedor para la gráfica 3D con Plotly -->
       <div id="planeChart" class="chart-container" style="height:400px;"></div>
       <button class="back-home-btn" onclick="returnHome()"><span>🔙 Volver al Inicio</span></button>
     </section>
@@ -363,37 +365,55 @@
       </div>
       <div class="help-item">
         <h3>Sesgo</h3>
-        <p>Asimetría de la distribución</p>
-        <p><strong>Fórmula:</strong> γ₁ = [n/((n-1)(n-2))] × Σ[(xᵢ - x̄)/σ]³</p>
+        <p>Indicador de asimetría en la distribución de datos.</p>
         <div class="video-container">
-          <iframe src="https://www.youtube.com/embed/Oui8SSIBkTU" allowfullscreen></iframe>
+          <iframe src="https://www.youtube.com/embed/9fAjRjbNdK4" allowfullscreen></iframe>
         </div>
       </div>
-      <div class="help-item">
-        <h3>Curtosis</h3>
-        <p>Medida de lo "puntiaguda" de la distribución</p>
-        <p><strong>Fórmula:</strong> β₂ = [n(n+1)/((n-1)(n-2)(n-3))] × Σ[(xᵢ - x̄)/σ]⁴ - [3(n-1)²/((n-2)(n-3))]</p>
-        <div class="video-container">
-          <iframe src="https://www.youtube.com/embed/WQB9qBfmiGM" allowfullscreen></iframe>
-        </div>
-      </div>
-      <button onclick="hideHelp()">Cerrar Ayuda</button>
+      <button class="back-home-btn" onclick="returnHome()"><span>🔙 Volver al Inicio</span></button>
     </section>
+
+    <hr class="separator">
+
+    <!-- Sección: Consumo -->
+    <section class="container" id="consumoSection" style="display: none;">
+      <h2>Consumo de Energía Eléctrica</h2>
+      <p>Selecciona una ciudad y el rango de tiempo para estimar el consumo basado en datos oficiales.
+         Cada selección se guardará y se actualizará una gráfica de línea que muestra la evolución del consumo.</p>
+      
+      <label for="consumoCitySelect">Ciudad:</label>
+      <select id="consumoCitySelect"></select>
+      
+      <label for="timeRangeSelect">Rango de Tiempo:</label>
+      <select id="timeRangeSelect">
+        <option value="1">1 hora</option>
+        <option value="2">2 horas</option>
+        <option value="3">3 horas</option>
+        <option value="4">4 horas</option>
+        <option value="8">8 horas</option>
+        <option value="10">10 horas</option>
+        <option value="12">12 horas</option>
+        <option value="24">24 horas</option>
+        <option value="1d">Al día siguiente</option>
+        <option value="3d">En tres días</option>
+        <option value="1w">Una semana</option>
+        <option value="1m">Un mes</option>
+      </select>
+      
+      <button onclick="calculateConsumption()">Estimar Consumo</button>
+      <p id="consumptionResult"></p>
+
+      <!-- Contenedor de la gráfica de línea -->
+      <div class="chart-container">
+        <canvas id="consumptionChart"></canvas>
+      </div>
+
+      <button class="back-home-btn" onclick="returnHome()"><span>🔙 Volver al Inicio</span></button>
+    </section>
+    
   </div>
 
-  <!-- Pie de página con créditos -->
-  <!--<footer class="team-footer">
-    <p>Desarrollado por:</p>
-    <ul>
-      <li>Gustavo Pérez Garduño</li>
-      <li>Ivan Montoya Barrera</li>
-      <li>Luis Fernando Avila Gazca</li>
-      <li>Carlos Alberto Zurian Sanchez</li>
-    </ul>
-  </footer>-->
-  <!-- Leaflet JS para el mapa -->
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <!-- Script principal -->
+  <!-- Incluye el script principal -->
   <script src="script.js"></script>
 </body>
 </html>
