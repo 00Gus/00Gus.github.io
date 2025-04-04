@@ -11,6 +11,7 @@ body, html {
   background-size: cover;
   color: #fff;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 /* Sección Hero */
@@ -143,9 +144,13 @@ button:hover { background: #57c00f; }
 
 /* Mapa */
 #map {
-  width: 100%; height: 300px; margin: 10px auto;
-  border: 2px solid #fff; border-radius: 5px;
-  background-color: #f0f0f0; display: none;
+  width: 100%;
+  height: 300px;
+  margin: 10px auto;
+  border: 2px solid #fff;
+  border-radius: 5px;
+  background-color: #f0f0f0;
+  display: none;
 }
 
 /* Panel description */
@@ -153,29 +158,55 @@ button:hover { background: #57c00f; }
 
 /* Mensajes de error */
 .error {
-  background-color: #e74c3c; padding: 10px; border-radius: 5px; color: #fff;
+  background-color: #e74c3c;
+  padding: 10px;
+  border-radius: 5px;
+  color: #fff;
 }
 
 /* Contenedor para gráficas (Chart.js / Plotly) */
 .chart-container {
-  width: 100%; max-width: 600px; margin: 20px auto;
-  background: #fff; border-radius: 8px; padding: 10px;
+  width: 100%;
+  max-width: 600px;
+  margin: 20px auto;
+  background: #fff;
+  border-radius: 8px;
+  padding: 10px;
 }
-.chart-container canvas { display: block; width: 100%; height: 300px; }
+.chart-container canvas {
+  display: block;
+  width: 100%;
+  height: 300px;
+}
 
 /* Botón de regreso */
 .back-home-btn {
-  margin-top: 30px; background: transparent; border: 2px solid #6be31c;
-  color: #fff; font-size: 18px; padding: 15px; transition: all 0.3s ease;
-  position: relative; overflow: hidden;
+  margin-top: 30px;
+  background: transparent;
+  border: 2px solid #6be31c;
+  color: #fff;
+  font-size: 18px;
+  padding: 15px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
 .back-home-btn:before {
-  content: ''; position: absolute; top: 0; left: -100%;
-  width: 100%; height: 100%; background: #6be31c;
-  transition: all 0.3s ease; z-index: 0;
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: #6be31c;
+  transition: all 0.3s ease;
+  z-index: 0;
 }
 .back-home-btn:hover:before { left: 0; }
-.back-home-btn span { position: relative; z-index: 1; }
+.back-home-btn span {
+  position: relative;
+  z-index: 1;
+}
 .back-home-btn:hover { color: #000; }
 .back-home-btn.solar { border-color: #ffd700; }
 .back-home-btn.solar:before { background: #ffd700; }
@@ -184,23 +215,46 @@ button:hover { background: #57c00f; }
 
 /* Sección de ayuda */
 .help-item {
-  background: rgba(255, 255, 255, 0.1); padding: 15px; border-radius: 8px; margin-bottom: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
 }
-.help-item h3 { color: #f1c40f; margin-bottom: 5px; }
+.help-item h3 {
+  color: #f1c40f;
+  margin-bottom: 5px;
+}
 
 /* Contenedor de videos responsivo */
 .video-container {
-  position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%;
-  background: #000; margin: 20px 0; border-radius: 10px; box-shadow: 0px 4px 10px rgba(0,0,0,0.3);
+  position: relative;
+  padding-bottom: 56.25%;
+  height: 0;
+  overflow: hidden;
+  max-width: 100%;
+  background: #000;
+  margin: 20px 0;
+  border-radius: 10px;
+  box-shadow: 0px 4px 10px rgba(0,0,0,0.3);
 }
 .video-container iframe {
-  position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
 }
 
 /* Estilo para el input de archivo Excel */
 input[type="file"] {
-  display: block; margin: 10px 0; padding: 5px;
-  background: rgba(255, 255, 255, 0.1); border: 1px solid #ccc; border-radius: 5px; color: white;
+  display: block;
+  margin: 10px 0;
+  padding: 5px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  color: white;
 }
 
 /* Estilo para mostrar matrices como tabla */
@@ -233,13 +287,29 @@ input[type="file"] {
 
 /* Footer del equipo */
 .team-footer {
-  position: fixed; bottom: 10px; left: 10px;
-  background: rgba(0, 0, 0, 0.7); padding: 8px 15px;
-  border-radius: 5px; font-size: 0.8em; z-index: 1000;
+  position: fixed;
+  bottom: 10px;
+  left: 10px;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 8px 15px;
+  border-radius: 5px;
+  font-size: 0.8em;
+  z-index: 1000;
 }
-.team-footer p { color: #80e31c; margin-bottom: 3px; font-weight: bold; }
-.team-footer ul { list-style: none; padding-left: 0; margin: 0; }
-.team-footer li { color: #ffffff; line-height: 1.4; }
+.team-footer p {
+  color: #80e31c;
+  margin-bottom: 3px;
+  font-weight: bold;
+}
+.team-footer ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+.team-footer li {
+  color: #ffffff;
+  line-height: 1.4;
+}
 
 /* Responsive */
 @media (max-width: 600px) {
@@ -250,27 +320,20 @@ input[type="file"] {
   select, input, textarea, button { font-size: 14px; }
 }
 
-/* ===============================
-   Botones en secciones de Ajuste de Parábola y Plano (3D)
-   Se muestran en azul claro
-   =============================== */
+/* Botones en Ajuste de Parábola y Plano (3D) */
 #parabolaSection button,
 #planeSection button {
-  background: #ADD8E6; /* Azul claro */
+  background: #ADD8E6;
   border: none;
   color: #000;
   transition: background 0.3s;
 }
-
 #parabolaSection button:hover,
 #planeSection button:hover {
-  background: #87CEEB; /* Azul más intenso en hover */
+  background: #87CEEB;
 }
 
-/* ===============================
-   Botones "Volver al Inicio" en secciones de Ajuste de Parábola y Plano (3D)
-   Estilo azul en lugar de verde
-   =============================== */
+/* Botón "Volver al Inicio" en Ajuste de Parábola y Plano (3D) */
 #parabolaSection .back-home-btn,
 #planeSection .back-home-btn {
   border-color: #ADD8E6;
