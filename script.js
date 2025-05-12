@@ -1081,5 +1081,77 @@ document.addEventListener("DOMContentLoaded", function() {
     consumptionHistory.push({ label: label, value: estimatedConsumption });
     updateConsumptionChart();
   };
+// Función para convertir texto a matriz (2D array)
+function parseMatrix(text) {
+  return text.trim().split('\n').map(row =>
+    row.trim().split(',').map(Number)
+  );
+}
+
+// Mostrar matriz como tabla HTML
+function renderMatrix(matrix) {
+  const html = `
+    <table class="matrix-table">
+      ${matrix.map(row =>
+        `<tr>${row.map(cell => `<td>${cell.toFixed(2)}</td>`).join('')}</tr>`
+      ).join('')}
+    </table>
+  `;
+  return html;
+}
+
+// Sumar matrices A + B
+window.addMatrices = function () {
+  const A = parseMatrix(document.getElementById("matrixA").value);
+  const B = parseMatrix(document.getElementById("matrixB").value);
+  try {
+    const sum = math.add(A, B);
+    document.getElementById("algebraResult1").innerHTML =
+      `<h4>Suma A + B:</h4>${renderMatrix(sum)}`;
+  } catch (error) {
+    document.getElementById("algebraResult1").innerHTML =
+      `<span class="error">Error al sumar matrices: ${error.message}</span>`;
+  }
+};
+
+// Multiplicar matrices A * B
+window.multiplyMatrices = function () {
+  const A = parseMatrix(document.getElementById("matrixA").value);
+  const B = parseMatrix(document.getElementById("matrixB").value);
+  try {
+    const product = math.multiply(A, B);
+    document.getElementById("algebraResult1").innerHTML =
+      `<h4>Multiplicación A × B:</h4>${renderMatrix(product)}`;
+  } catch (error) {
+    document.getElementById("algebraResult1").innerHTML =
+      `<span class="error">Error al multiplicar matrices: ${error.message}</span>`;
+  }
+};
+
+// Transponer una sola matriz
+window.transposeMatrix = function () {
+  const M = parseMatrix(document.getElementById("matrixSingle").value);
+  try {
+    const transposed = math.transpose(M);
+    document.getElementById("algebraResult2").innerHTML =
+      `<h4>Matriz Transpuesta:</h4>${renderMatrix(transposed)}`;
+  } catch (error) {
+    document.getElementById("algebraResult2").innerHTML =
+      `<span class="error">Error al transponer la matriz: ${error.message}</span>`;
+  }
+};
+
+// Invertir una sola matriz
+window.invertMatrix = function () {
+  const M = parseMatrix(document.getElementById("matrixSingle").value);
+  try {
+    const inverted = math.inv(M);
+    document.getElementById("algebraResult2").innerHTML =
+      `<h4>Matriz Inversa:</h4>${renderMatrix(inverted)}`;
+  } catch (error) {
+    document.getElementById("algebraResult2").innerHTML =
+      `<span class="error">Error al invertir la matriz: ${error.message}</span>`;
+  }
+};
 
 });
